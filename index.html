@@ -3,57 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nova HUD - Scripts (Esqueleto de Autenticación)</title>
+  <title>Nova HUD - Scripts (UI ScriptBlox)</title>
   <style>
-    :root{--bg:#0b1020;--card:#151a35;--text:#e8eaf6;--muted:#a6a6a6;--accent:#6d28d9}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter, system-ui, Arial, sans-serif}
-    .top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #222;background:#0f1430;position:sticky;top:0;z-index:10}
-    .brand{font-weight:700}
-    .user-bar{color:var(--muted);font-size:14px}
+    :root{--bg:#0b1020;--card:#151a35;--text:#e7e9f5;--muted:#a6a6a6;--accent:#6d28d9;--shadow:0 6px 20px rgba(0,0,0,.25)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter, system-ui, Arial, sans-serif}
+    header.top{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #2a2a3a;background:linear-gradient(135deg,#171a3a 0%, #0b1020 60%);position:sticky;top:0;z-index:10}
+    .brand{font-size:20px;font-weight:800;letter-spacing:.4px}
+    .brand .tag{margin-left:8px;background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .user-area{display:flex;align-items:center;gap:12px}
+    .avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#2a2a2a;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .role-badge{font-size:11px;padding:4px 8px;border-radius:999px;background:#1e1f3a;border:1px solid #2a2a3a;color:#ddd}
     .container{max-width:1100px;margin:20px auto;padding:0 16px}
-    .tabs{display:flex;gap:8px;border-bottom:1px solid #2a2a3a;padding-bottom:6px;margin-bottom:12px}
-    .tab{padding:8px 12px;border-radius:6px 6px 0 0;background:#1b1f45;border:1px solid #2a2a3a;cursor:pointer}
-    .tab.active{background:#2b2f7a;color:white}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-    .card{background:var(--card);padding:12px;border:1px solid #2a2a3a;border-radius:8px}
+    .hero{padding:16px 0 12px}
+    .hero h1{margin:0;font-size:28px;line-height:1.25;font-weight:900;letter-spacing:.2px}
+    .hero .sub{font-size:12px;color:var(--muted)}
+    .search{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+    .search input{flex:1;min-width:240px;padding:12px 14px;border-radius:8px;border:1px solid #444;background:#0b1330;color:#fff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:12px}
+    .card{background:var(--card);border:1px solid #2a2a3a;border-radius:12px;padding:12px;box-shadow:var(--shadow)}
     .card h4{margin:0 0 6px;font-size:14px}
-    .btn{padding:8px 12px;border-radius:6px;border:1px solid #2a2a3a;background:#2a2a66;color:white;cursor:pointer}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
+    .card p{margin:0 0 8px;font-size:13px;color:var(--muted)}
+    .btn{padding:10px 12px;border-radius:8px;border:1px solid #2a2a3a;background:#2a2a66;color:white;cursor:pointer}
+    .btn.primary{background:#6d28d9}
+    .btn.secondary{background:#1e1f3a}
+    .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .tabs{display:flex;gap:8px;border-bottom:1px solid #2a2a3a;padding:6px 0;margin-top:8px}
+    .tab{padding:8px 12px;border-radius:8px 8px 0 0;background:#1b1f45;border:1px solid #2a2a3a;cursor:pointer}
+    .tab.active{background:#2b2f7a;color:white}
+    /* Modales */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:20}
     .modal.open{display:flex}
-    .dialog{background:#0d123b;color:white;padding:16px;border-radius:8px;width:min(92%,520px);border:1px solid #333}
-    .form{display:grid;gap:8px;margin-bottom:8px}
-    .input{padding:8px;border-radius:6px;border:1px solid #444;background:#0b1330;color:white}
-    .textarea{min-height:100px;padding:8px;border-radius:6px;border:1px solid #444;background:#0b1330;color:white}
-    @media (max-width: 700px){ .grid{grid-template-columns:1fr} }
+    .dialog{background:#0f1330;border-radius:12px;padding:18px;width:min(92%,720px);border:1px solid #333;color:#fff}
+    .dialog h3{margin:0 0 8px}
+    .form{display:grid;gap:10px}
+    .input{padding:10px;border-radius:8px;border:1px solid #444;background:#0b1330;color:#fff}
+    .file{padding:8px;border-radius:6px;border:1px solid #444;background:#0b1330;color:#fff}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+    .heroRow{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
   </style>
 </head>
 <body>
   <header class="top">
-    <div class="brand">Nova HUD - Scripts</div>
-    <div class="user-bar" id="userBar">No autenticado</div>
-  </header>
-  <main class="container">
-    <div class="tabs" id="tabs">
-      <button class="tab active" data-tab="community">Scripts Comunidad</button>
-      <button class="tab" data-tab="nova">Nova Scripts</button>
-      <button class="tab" data-tab="all">Todos</button>
-    </div>
-
-    <section id="section-community" class="grid section"></section>
-    <section id="section-nova" class="grid section" style="display:none"></section>
-    <section id="section-all" class="grid section" style="display:none"></section>
-
-    <div style="margin-top:16px">
-      <button class="btn" id="btnUploadCommunity">Subir a Comunidad</button>
-      <button class="btn" id="btnUploadNova" style="margin-left:8px; display:none">Subir Nova Script</button>
+    <div class="brand">Nova HUD <span class="tag">ScriptBlox</span></div>
+    <div class="user-area">
+      <div id="avatarHeader" class="avatar" title="Avatar" style="display:none"></div>
+      <div id="userNameHeader" style="font-size:13px"></div>
       <button class="btn" id="btnOpenRegister" style="margin-left:8px">Registrarse</button>
       <button class="btn" id="btnOpenLogin" style="margin-left:8px">Iniciar sesión</button>
       <button class="btn" id="btnLogout" style="margin-left:8px; display:none">Cerrar sesión</button>
     </div>
+  </header>
+
+  <section class="hero container" id="hero">
+    <div class="heroRow">
+      <h1 style="flex:1 1 auto;">Search the best Roblox Scripts available in community
+        <span class="tag" style="margin-left:8px;background:#6d28d9">ScriptBlox</span>
+      </h1>
+    </div>
+    <div class="search">
+      <input id="searchInput" placeholder="Buscar scripts (ej: 'tutorial')" />
+      <button id="btnClearSearch" class="btn">Limpiar</button>
+    </div>
+  </section>
+
+  <main class="container">
+    <div class="panel" style="padding:12px 14px 6px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div style="font-weight:700">Scripts Comunidad</div>
+      <div>
+        <button class="btn primary" id="btnUploadCommunity">Subir a Comunidad</button>
+        <button class="btn primary" id="btnUploadNova" style="margin-left:8px; display:none">Subir Nova Script</button>
+      </div>
+    </div>
+    <section id="section-community" class="grid" aria-label="Scripts Comunidad"></section>
+
+    <div class="panel" style="margin-top:20px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div style="font-weight:700">Nova Scripts (Admin) </div>
+      <span id="adminHint" style="color:#ffd166; font-size:12px"></span>
+    </div>
+    <section id="section-nova" class="grid" aria-label="Nova Scripts" style="display:none"></section>
+
+    <div class="panel" style="margin-top:20px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div style="font-weight:700">Todos</div>
+    </div>
+    <section id="section-all" class="grid" aria-label="Todos" style="display:none"></section>
   </main>
 
-  <!-- Registro -->
+  <!-- Modales -->
   <div class="modal" id="modalRegister" aria-hidden="true">
     <div class="dialog">
       <h3>Registro</h3>
@@ -67,8 +104,6 @@
       <div id="regMsg" style="margin-top:6px;color:#ffd166"></div>
     </div>
   </div>
-
-  <!-- Login -->
   <div class="modal" id="modalLogin" aria-hidden="true">
     <div class="dialog">
       <h3>Iniciar sesión</h3>
@@ -81,17 +116,81 @@
       <div id="loginMsg" style="margin-top:6px;color:#ffd166"></div>
     </div>
   </div>
+  
+  <!-- Perfil -->
+  <div class="modal" id="modalPerfil" aria-hidden="true">
+    <div class="dialog">
+      <h3>Perfil</h3>
+      <div class="form">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div id="perfilAvatar" class="avatar" style="width:64px;height:64px;font-size:28px"></div>
+          <input type="file" id="avatarInput" accept="image/*" class="file" />
+        </div>
+        <div id="perfilInfo" style="font-weight:600;margin-top:6px"></div>
+        <div id="perfilEmail" style="font-size:12px;color:var(--muted)"></div>
+        <div id="perfilRole" class="role-badge" style="margin-top:6px"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" id="btnPerfilClose">Cerrar</button>
+        <button class="btn primary" id="btnPerfilSave">Guardar cambios</button>
+      </div>
+      <div id="perfilMsg" style="margin-top:6px;color:#ffd166"></div>
+    </div>
+  </div>
+
+  <!-- Subir script (Comunidad) -->
+  <div class="modal" id="modalUpload" aria-hidden="true">
+    <div class="dialog" style="min-width:320px;">
+      <h3>Subir script a Comunidad</h3>
+      <div class="form" style="gap:8px">
+        <input class="input" id="uploadTitle" placeholder="Título" />
+        <textarea class="input" id="uploadDesc" placeholder="Descripción" style="min-height:90px"></textarea>
+        <textarea class="input" id="uploadContent" placeholder="Contenido del script (texto)" style="min-height:120px"></textarea>
+        <input type="file" id="uploadThumb" accept="image/*" class="file" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="btn" id="btnUploadSubmit">Subir</button>
+        <button class="btn" id="btnUploadCancel">Cancelar</button>
+      </div>
+      <div id="uploadMsg" style="margin-top:6px;color:#ffd166"></div>
+    </div>
+  </div>
+
+  <!-- Subir Nova Script (Admin) -->
+  <div class="modal" id="modalUploadNova" aria-hidden="true">
+    <div class="dialog" style="min-width:320px;">
+      <h3>Subir Nova Script (Admin)</h3>
+      <div class="form" style="gap:8px">
+        <input class="input" id="uploadNovaTitle" placeholder="Título" />
+        <textarea class="input" id="uploadNovaDesc" placeholder="Descripción" style="min-height:90px"></textarea>
+        <textarea class="input" id="uploadNovaContent" placeholder="Contenido del script (texto)" style="min-height:120px"></textarea>
+        <input type="file" id="uploadNovaThumb" accept="image/*" class="file" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="btn" id="btnUploadNovaSubmit">Subir</button>
+        <button class="btn" id="btnUploadNovaCancel">Cancelar</button>
+      </div>
+      <div id="uploadNovaMsg" style="margin-top:6px;color:#ffd166"></div>
+    </div>
+  </div>
 
   <script>
   (function(){
+    // Storage keys
     const STORAGE = { users: 'nh_users', session: 'nh_session', scripts: 'nh_scripts' };
+    // DOM refs
     const DOM = {
-      userBar: document.getElementById('userBar'),
-      btnUploadCommunity: document.getElementById('btnUploadCommunity'),
-      btnUploadNova: document.getElementById('btnUploadNova'),
       btnOpenRegister: document.getElementById('btnOpenRegister'),
       btnOpenLogin: document.getElementById('btnOpenLogin'),
       btnLogout: document.getElementById('btnLogout'),
+      avatarHeader: document.getElementById('avatarHeader'),
+      userNameHeader: document.getElementById('userNameHeader'),
+      searchInput: document.getElementById('searchInput'),
+      sectionCommunity: document.getElementById('section-community'),
+      sectionNova: document.getElementById('section-nova'),
+      sectionAll: document.getElementById('section-all'),
+      btnUploadCommunity: document.getElementById('btnUploadCommunity'),
+      btnUploadNova: document.getElementById('btnUploadNova'),
       modalRegister: document.getElementById('modalRegister'),
       modalLogin: document.getElementById('modalLogin'),
       regEmail: document.getElementById('regEmail'),
@@ -105,47 +204,183 @@
       btnLogin: document.getElementById('btnLogin'),
       btnLoginClose: document.getElementById('btnLoginClose'),
       loginMsg: document.getElementById('loginMsg'),
-      sectionCommunity: document.getElementById('section-community'),
-      sectionNova: document.getElementById('section-nova'),
-      sectionAll: document.getElementById('section-all'),
+      modalPerfil: document.getElementById('modalPerfil'),
+      btnPerfilClose: document.getElementById('btnPerfilClose'),
+      btnPerfilSave: document.getElementById('btnPerfilSave'),
+      avatarInput: document.getElementById('avatarInput'),
+      perfilAvatar: document.getElementById('perfilAvatar'),
+      perfilInfo: document.getElementById('perfilInfo'),
+      perfilEmail: document.getElementById('perfilEmail'),
+      perfilRole: document.getElementById('perfilRole'),
+      perfilMsg: document.getElementById('perfilMsg'),
+      btnUploadSubmit: document.getElementById('btnUploadSubmit'),
+      btnUploadCancel: document.getElementById('btnUploadCancel'),
+      uploadTitle: document.getElementById('uploadTitle'),
+      uploadDesc: document.getElementById('uploadDesc'),
+      uploadContent: document.getElementById('uploadContent'),
+      uploadThumb: document.getElementById('uploadThumb'),
+      uploadMsg: document.getElementById('uploadMsg'),
+      modalUpload: document.getElementById('modalUpload'),
+      modalUploadNova: document.getElementById('modalUploadNova'),
+      uploadNovaTitle: document.getElementById('uploadNovaTitle'),
+      uploadNovaDesc: document.getElementById('uploadNovaDesc'),
+      uploadNovaContent: document.getElementById('uploadNovaContent'),
+      uploadNovaThumb: document.getElementById('uploadNovaThumb'),
+      btnUploadNovaSubmit: document.getElementById('btnUploadNovaSubmit'),
+      btnUploadNovaCancel: document.getElementById('btnUploadNovaCancel'),
+      uploadNovaMsg: document.getElementById('uploadNovaMsg'),
+      adminHint: document.getElementById('adminHint'),
     };
 
-    function getUsers(){ const s = localStorage.getItem(STORAGE.users); return s? JSON.parse(s) : []; }
-    function saveUsers(u){ localStorage.setItem(STORAGE.users, JSON.stringify(u)); }
-    function getSession(){ const s = localStorage.getItem(STORAGE.session); return s? JSON.parse(s) : null; }
-    function saveSession(s){ localStorage.setItem(STORAGE.session, JSON.stringify(s)); }
-    function hash(pw){ // simple placeholder
-      return pw;
+    // Helpers
+    const getUsers = ()=>{ const s = localStorage.getItem(STORAGE.users); return s ? JSON.parse(s) : []; };
+    const saveUsers = (u)=> localStorage.setItem(STORAGE.users, JSON.stringify(u));
+    const getSession = ()=>{ const s = localStorage.getItem(STORAGE.session); return s ? JSON.parse(s) : null; };
+    const saveSession = (s)=> localStorage.setItem(STORAGE.session, JSON.stringify(s));
+
+    const getScripts = ()=>{ const s = localStorage.getItem(STORAGE.scripts); return s ? JSON.parse(s) : []; };
+    const saveScripts = (arr)=> localStorage.setItem(STORAGE.scripts, JSON.stringify(arr));
+
+    // Admin seed
+    const ensureAdminExists = ()=>{ const users = getUsers(); if(!users.find(u=>u.role==='admin')){ const admin = { id:'admin', username:'owner', email:'owner@example.com', password:'admin', role:'admin' }; users.push(admin); saveUsers(users); }};
+
+    // State helpers
+    const current = ()=> getSession();
+    const isLoggedIn = ()=> !!getSession();
+    const isAdmin = ()=> current() && current().role==='admin';
+    const canUploadCommunity = ()=> isLoggedIn();
+    const canUploadNova = ()=> isAdmin();
+
+    // UI rendering
+    const renderHeader = ()=>{
+      const s = current(); if(s){ DOM.avatarHeader.style.display='flex'; DOM.btnLogout.style.display='inline-block'; DOM.userNameHeader.textContent = s.username + ' ('+ s.role +')'; if(s.avatar){ DOM.avatarHeader.innerHTML = `<img src="${s.avatar}" alt="avatar" style="width:40px;height:40px;border-radius:50%"/>`; } else { DOM.avatarHeader.textContent = s.username.charAt(0).toUpperCase(); }
+        // Nova button visibility
+        DOM.btnUploadNova.style.display = s.role==='admin' ? 'inline-block' : 'none'; DOM.adminHint.textContent = s.role==='admin' ? 'Acceso de administrador' : '';
+      } else {
+        DOM.avatarHeader.style.display = 'none'; DOM.userNameHeader.textContent=''; DOM.btnLogout.style.display='none'; DOM.btnUploadNova.style.display='none'; DOM.adminHint.textContent='';
+      }
+      // Update All tab visibility
+      document.getElementById('tabNova').style.display = isAdmin() ? 'inline-block' : 'none';
+    };
+
+    const renderScripts = (list)=>{
+      // Clear sections
+      const renderCard = (s)=>{ const card = document.createElement('div'); card.className='card'; card.style.display='flex'; card.style.flexDirection='column'; card.style.gap='6px'; card.innerHTML = `<div style="font-weight:700">${s.title}</div><div style="font-size:12px;color:var(--muted)">${s.description}</div><div style="display:flex;gap:6px;align-items:center;margin-top:auto"></div>`; // add actions below after
+        const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='6px';
+        const dl = document.createElement('button'); dl.className='btn'; dl.textContent='Descargar'; dl.addEventListener('click', ()=>downloadScript(s));
+        const ver = document.createElement('button'); ver.className='btn secondary'; ver.textContent='Ver'; ver.addEventListener('click', ()=>alert('Detalles: '+s.title));
+        actions.appendChild(dl); actions.appendChild(ver); card.appendChild(actions);
+        // optional thumbnail area
+        return card;
+      };
+      // community
+      DOM.sectionCommunity.innerHTML='';
+      (list||[]).filter(x=> x.category==='community').forEach(s=> DOM.sectionCommunity.appendChild(renderCard(s)));
+      // nova
+      DOM.sectionNova.innerHTML='';
+      (list||[]).filter(x=> x.category==='nova').forEach(s=>{ const c = renderCard(s); DOM.sectionNova.appendChild(c); // admin only actions can be added here later
+      // add delete for admin
+      if(isAdmin()){ const del = document.createElement('button'); del.className='btn'; del.textContent='Eliminar'; del.style.marginLeft='4px'; del.addEventListener('click', ()=>{ deleteScript(s.id); }); c.appendChild(del); }
+      });
+      // all
+      DOM.sectionAll.innerHTML=''; (list||[]).forEach(s=>{ const c = renderCard(s); DOM.sectionAll.appendChild(c); });
+    };
+
+    const downloadScript = (s)=>{
+      const content = s.content || '';
+      const blob = new Blob([content], {type:'text/plain'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (s.title || 'script') + '.txt'; a.click(); URL.revokeObjectURL(a.href);
+    };
+
+    const loadInitialData = ()=>{
+      ensureAdminExists(); // users
+      // seed scripts if none
+      let scripts = getScripts(); if(!scripts || !scripts.length){ const seed = [
+        { id:'c1', title:'Script de bienvenida', description:'Un script de ejemplo de la comunidad', content:'echo Hola mundo', category:'community', author:'owner', date:new Date().toISOString() },
+        { id:'c2', title:'Guía de instalación', description:'Instrucciones', content:'pasos:\n1. hacer... ', category:'community', author:'user1', date:new Date().toISOString() },
+        { id:'n1', title:'Nova Script ejemplo', description:'Ejemplo admin', content:'print("Nova Script")', category:'nova', author:'admin', date:new Date().toISOString() }
+      ]; localStorage.setItem(STORAGE.scripts, JSON.stringify(seed)); scripts = seed; }
+      renderScripts(scripts);
+    };
+
+    // Init helpers
+    const createModal = (modal)=> modal.classList.add('open');
+    const closeModal = (modal)=> modal.classList.remove('open');
+
+    // Bindings for auth modals
+    const mRegister = DOM.modalRegister || document.getElementById('modalRegister');
+    const mLogin = DOM.modalLogin || document.getElementById('modalLogin');
+    // Attach events if exists
+    if(DOM.btnOpenRegister){ DOM.btnOpenRegister.addEventListener('click', ()=> createModal(mRegister)); }
+    if(DOM.btnOpenLogin){ DOM.btnOpenLogin.addEventListener('click', ()=> createModal(mLogin)); }
+    if(DOM.btnLogout){ DOM.btnLogout.addEventListener('click', ()=>{ localStorage.removeItem(STORAGE.session); updateAll(); }); }
+    // Register flow
+    const regForm = {email: DOM.regEmail, user: DOM.regUsername, pw: DOM.regPassword, btn: document.getElementById('btnRegister'), msg: document.getElementById('regMsg')};
+    if(regForm.btn){ regForm.btn.addEventListener('click', ()=>{
+      const email = regForm.email.value?.trim(); const user = regForm.user.value?.trim(); const pw = regForm.pw.value?.trim(); if(!email||!user||!pw){ regForm.msg.textContent='Completa todos los campos'; return; }
+      const users = getUsers(); if(users.find(u=>u.username===user || u.email===email)){ regForm.msg.textContent='Usuario o email ya registrado'; return; }
+      users.push({id:'u_'+Date.now(), username:user, email:email, password:pw, role:'user', avatar:''}); saveUsers(users); regForm.msg.textContent='Cuenta creada. Inicia sesión'; }); }
+    // Close reg
+    if(DOM.btnRegisterClose){ DOM.btnRegisterClose.addEventListener('click', ()=>{ mRegister.classList.remove('open'); regForm.email.value=''; regForm.user.value=''; regForm.pw.value=''; regForm.msg.textContent=''; }); }
+
+    // Login flow
+    const loginBtn = document.getElementById('btnLogin');
+    if(loginBtn){ loginBtn.addEventListener('click', ()=>{
+      const userOrEmail = document.getElementById('loginUser').value.trim(); const pw = document.getElementById('loginPassword').value.trim(); const users = getUsers(); const userObj = users.find(u=> (u.username===userOrEmail || u.email===userOrEmail)); if(!userObj){ document.getElementById('loginMsg').textContent='Usuario no encontrado'; return; } if(userObj.password !== pw){ document.getElementById('loginMsg').textContent='Contraseña incorrecta'; return; } saveSession({id:userObj.id, username:userObj.username, email:userObj.email, role:userObj.role, avatar:userObj.avatar||''}); mLogin.classList.remove('open'); document.getElementById('loginUser').value=''; document.getElementById('loginPassword').value=''; updateAll(); }); }
+    const loginClose = document.getElementById('btnLoginClose'); if(loginClose){ loginClose.addEventListener('click', ()=>{ mLogin.classList.remove('open'); document.getElementById('loginUser').value=''; document.getElementById('loginPassword').value=''; }); }
+
+    // Avatar in profile (Phase 1: simple avatar management)
+    const avatarInput = document.getElementById('avatarInput');
+    if(avatarInput){ avatarInput.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = ()=>{ const dataURL = reader.result; const s = current(); if(!s) return; s.avatar = dataURL; const users = getUsers(); const idx = users.findIndex(u => u.id===s.id || u.username===s.username); if(idx>=0){ users[idx].avatar = dataURL; saveUsers(users); } localStorage.setItem('avatarPreview', dataURL); updateAll(); }; reader.readAsDataURL(f); }); }
+
+    // Upload community script
+    if(DOM.btnUploadSubmit){ DOM.btnUploadSubmit.addEventListener('click', ()=>{ const t = DOM.uploadTitle.value.trim(); const d = DOM.uploadDesc.value.trim(); const c = DOM.uploadContent.value.trim(); const f = DOM.uploadThumb.files[0]; if(!t||!c){ document.getElementById('uploadMsg').textContent='Título y contenido requeridos'; return; }
+        const scripts = getScripts(); const newScript = { id: 'c_'+Date.now(), title: t, description: d||'', content: c, category:'community', author: (getSession()?.username)||'anon', date:new Date().toISOString(), thumbnail:'' };
+        // handle thumbnail if provided
+        if(f){ const reader = new FileReader(); reader.onload = ()=>{ newScript.thumbnail = reader.result; const arr = scripts; arr.push(newScript); saveScripts(arr); renderAll(); DOM.modalUpload.classList.remove('open'); resetUploadForm(); }; reader.readAsDataURL(f); } else {
+          scripts.push(newScript); saveScripts(scripts); renderAll(); DOM.modalUpload.classList.remove('open'); resetUploadForm(); }
+      }); }
+    if(DOM.btnUploadCancel){ DOM.btnUploadCancel.addEventListener('click', ()=>{ DOM.modalUpload.classList.remove('open'); resetUploadForm(); }); }
+
+    // Upload Nova Script (admin)
+    if(DOM.btnUploadNova){ DOM.btnUploadNova.addEventListener('click', ()=>{ if(!isAdmin()) return alert('Acceso restringido a administrador'); DOM.modalUploadNova.classList.add('open'); }); }
+    if(document.getElementById('btnUploadNovaSubmit')){ document.getElementById('btnUploadNovaSubmit').addEventListener('click', ()=>{ const t = DOM.uploadNovaTitle.value.trim(); const d = DOM.uploadNovaDesc.value.trim(); const c = DOM.uploadNovaContent.value.trim(); if(!t||!c){ document.getElementById('uploadNovaMsg').textContent='Título y contenido requeridos'; return; } const scripts = getScripts(); const newScript = { id:'n_'+Date.now(), title:t, description:d||'', content:c, category:'nova', author:(getSession()?.username)||'admin', date:new Date().toISOString(), thumbnail:'' }; const f = DOM.uploadNovaThumb.files[0]; if(f){ const reader=new FileReader(); reader.onload=()=>{ newScript.thumbnail=reader.result; scripts.push(newScript); saveScripts(scripts); renderAll(); resetNovaUpload(); DOM.modalUploadNova.classList.remove('open'); }; reader.readAsDataURL(f);} else { scripts.push(newScript); saveScripts(scripts); renderAll(); resetNovaUpload(); DOM.modalUploadNova.classList.remove('open'); } }); }
+    if(document.getElementById('btnUploadNovaCancel')){ document.getElementById('btnUploadNovaCancel').addEventListener('click', ()=>{ DOM.modalUploadNova.classList.remove('open'); resetNovaUpload(); }); }
+
+    function resetUploadForm(){ DOM.uploadTitle.value=''; DOM.uploadDesc.value=''; DOM.uploadContent.value=''; DOM.uploadThumb.value=''; DOM.uploadMsg.textContent=''; }
+    function resetNovaUpload(){ DOM.uploadNovaTitle.value=''; DOM.uploadNovaDesc.value=''; DOM.uploadNovaContent.value=''; DOM.uploadNovaThumb.value=''; DOM.uploadNovaMsg.textContent=''; }
+
+    // Render all sections
+    function renderAll(){ const scripts = getScripts(); renderAllSections(scripts); }
+    function renderAllSections(list){ // render community and nova and all
+      // Community cards currently built in renderScripts
+      renderScripts(list);
     }
-    function ensureAdminExists(){ const users = getUsers(); if(!users.find(u => u.role==='admin')){ const admin = { id:'admin', username:'owner', email:'owner@example.com', password:'admin', role:'admin' }; users.push(admin); saveUsers(users); } }
-    function isLoggedIn(){ return !!getSession(); }
-    function current(){ return getSession(); }
-    function updateUI(){ const s = getSession(); if(s){ DOM.userBar.textContent = 'Conectado: ' + s.username + ' (' + s.role + ')'; DOM.btnLogout.style.display='inline-block'; DOM.btnOpenLogin.style.display='none'; DOM.btnUploadCommunity.disabled=false; if(s.role==='admin') DOM.btnUploadNova.style.display='inline-block'; } else { DOM.userBar.textContent='No autenticado'; DOM.btnLogout.style.display='none'; DOM.btnOpenLogin.style.display='inline-block'; DOM.btnUploadCommunity.disabled=true; DOM.btnUploadNova.style.display='none'; } }
-    function openModal(m){ m.classList.add('open'); }
-    function closeModal(m){ m.classList.remove('open'); }
+
+    // Helpers: delete script (admin only)
+    function deleteScript(id){ let scripts = getScripts(); scripts = scripts.filter(s=> s.id!==id); saveScripts(scripts); renderAll(); }
+
+    // Update overall UI and data
+    function updateAll(){ renderHeader(); loadInitialData(); }
 
     // Init
-    ensureAdminExists(); updateUI();
+    function init(){ ensureAdminExists(); loadInitialData(); renderAll(); }
 
-    // Event bindings
-    DOM.btnOpenRegister.addEventListener('click', ()=> openModal(DOM.modalRegister));
-    DOM.modalRegister.querySelector('#btnRegister').addEventListener('click', ()=> {
-      const email = DOM.regEmail.value.trim(); const user = DOM.regUsername.value.trim(); const pw = DOM.regPassword.value.trim(); if(!email || !user || !pw){ DOM.regMsg.textContent='Completa todos los campos'; return; }
-      const users = getUsers(); if(users.find(u=>u.username===user)){ DOM.regMsg.textContent='Usuario ya existe'; return; }
-      const newUser = { id: 'u_'+Date.now(), username: user, email: email, password: pw, role: 'user' };
-      users.push(newUser); saveUsers(users); DOM.regMsg.textContent='Cuenta creada. Ya puedes iniciar sesión.'; 
-    });
-    DOM.modalRegister.querySelector('#btnRegisterClose').addEventListener('click', ()=> { DOM.regEmail.value=''; DOM.regUsername.value=''; DOM.regPassword.value=''; DOM.regMsg.textContent=''; closeModal(DOM.modalRegister); });
-    DOM.btnOpenLogin.addEventListener('click', ()=> openModal(DOM.modalLogin));
-    DOM.modalLogin.querySelector('#btnLogin').addEventListener('click', ()=> {
-      const userOrEmail = DOM.loginUser.value.trim(); const pw = DOM.loginPassword.value.trim(); if(!userOrEmail || !pw){ DOM.loginMsg.textContent='Ingresa usuario/correo y contraseña'; return; }
-      const users = getUsers(); const userObj = users.find(u => (u.username===userOrEmail || u.email===userOrEmail)); if(!userObj){ DOM.loginMsg.textContent='Usuario no encontrado'; return; }
-      if(userObj.password !== pw){ DOM.loginMsg.textContent='Contraseña incorrecta'; return; }
-      saveSession({ id: userObj.id, username: userObj.username, email: userObj.email, role: userObj.role });
-      closeModal(DOM.modalLogin); DOM.loginUser.value=''; DOM.loginPassword.value=''; DOM.loginMsg.textContent=''; updateUI();
-    });
-    DOM.modalLogin.querySelector('#btnLoginClose').addEventListener('click', ()=> { DOM.loginUser.value=''; DOM.loginPassword.value=''; closeModal(DOM.modalLogin); });
-    DOM.btnLogout.addEventListener('click', ()=> { localStorage.removeItem(STORAGE.session); updateUI(); });
+    // URL-based search sync and filtering
+    if(DOM.searchInput){ DOM.searchInput.addEventListener('input', (e)=>{ const q = e.target.value; const url = q ? '?q='+encodeURIComponent(q) : ''; history.replaceState(null, '', url); // filter current list by q
+      applyQueryFilter(q); }); }
+
+    function applyQueryFilter(q){ const all = getScripts(); if(!q){ renderAllSections(all); return; } const f = all.filter(s => (s.title||'').toLowerCase().includes(q.toLowerCase()) || (s.description||'').toLowerCase().includes(q.toLowerCase())); renderAllSections(f); }
+
+    // Initialize
+    const initFromURL = ()=>{ const params = new URLSearchParams(window.location.search); const q = params.get('q')||''; if(q && DOM.searchInput){ DOM.searchInput.value = q; applyQueryFilter(q); } };
+
+    // Seed and render
+    init(); initFromURL();
+
+    // Bind header actions
+    // Registrarse / Iniciar sesión modal toggling already wired above
+
   })();
   </script>
 </body>
