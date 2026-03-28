@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nova HUD — Scripts</title>
   <style>
-    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#7c3aed;--accent-2:#06b6d4;--glass:rgba(255,255,255,0.03)}
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#7c3aed;--accent-2:#06b6d4;--glass:rgba(255,255,255,0.03);--danger:#ef4444;--success:#22c55e}
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial; background:linear-gradient(180deg,#071029 0%, #071629 60%); color:#e6eef8; -webkit-font-smoothing:antialiased}
     .container{max-width:1100px;margin:32px auto;padding:20px}
@@ -16,35 +16,62 @@
     .controls{display:flex;gap:12px;align-items:center}
     .search{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;display:flex;align-items:center;gap:8px}
     .search input{background:transparent;border:0;color:inherit;outline:none;width:220px}
-    .btn{background:var(--accent);border:none;padding:8px 12px;border-radius:10px;color:white;cursor:pointer;font-weight:600}
+    .btn{background:var(--accent);border:none;padding:8px 12px;border-radius:10px;color:white;cursor:pointer;font-weight:600;transition:all 0.2s}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,58,237,0.3)}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+    .btn.danger{background:var(--danger)}
+    .btn.success{background:var(--success)}
     .stats{display:flex;gap:12px;margin:18px 0}
     .stat{background:var(--card);padding:12px;border-radius:10px;min-width:110px;text-align:center}
+    .stat .val{font-size:24px;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-    .filters button{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}
+    .filters button{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer;transition:all 0.2s}
+    .filters button:hover{background:rgba(255,255,255,0.03)}
     .filters button.active{border-color:var(--accent);color:white;background:linear-gradient(90deg,rgba(124,58,237,0.12),rgba(6,182,212,0.06))}
     .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:10px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:10px;transition:all 0.2s}
+    .card:hover{border-color:rgba(124,58,237,0.3);transform:translateY(-2px)}
     .card img{width:100%;height:140px;object-fit:cover;border-radius:8px}
-    .meta{display:flex;justify-content:space-between;align-items:center}
+    .meta{display:flex;justify-content:space-between;align-items:flex-start}
     .tags{display:flex;gap:6px;flex-wrap:wrap}
     .tag{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.03);color:var(--muted)}
-    .card .title{font-weight:700}
-    .actions{display:flex;gap:8px}
+    .tag.nova{background:linear-gradient(90deg,rgba(124,58,237,0.2),rgba(6,182,212,0.1));color:#a78bfa;border:1px solid rgba(124,58,237,0.3)}
+    .tag.comunidad{background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.3)}
+    .card .title{font-weight:700;font-size:16px}
+    .card .desc{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
     .small{padding:6px 8px;font-size:13px;border-radius:8px}
     .fav{background:transparent;border:1px solid rgba(255,255,255,0.05);cursor:pointer}
-    footer{margin:28px 0;text-align:center;color:var(--muted)}
+    .fav.active{color:#ef4444;border-color:#ef4444}
+    footer{margin:28px 0;text-align:center;color:var(--muted);font-size:13px}
     /* Responsive */
     @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:600px){.container{padding:12px;margin:12px auto}.grid{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}.search input{width:140px}}
     /* Modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;padding:20px}
-    .modal{background:#071029;padding:18px;border-radius:12px;max-width:700px;width:100%;box-shadow:0 8px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+    .modal{background:#071029;padding:20px;border-radius:14px;max-width:500px;width:100%;box-shadow:0 8px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03);animation:modalIn 0.2s ease-out}
+    @keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+    .modal h3{margin:0 0 12px 0;font-size:18px}
     .form-row{display:flex;gap:8px}
     .form-row .field{flex:1;display:flex;flex-direction:column;gap:6px}
-    input[type="text"],textarea,select{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:8px;color:inherit;resize:vertical}
-    textarea{min-height:90px}
+    input[type="text"],input[type="password"],textarea,select{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:8px;color:inherit;resize:vertical;width:100%;font-family:inherit}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+    textarea{min-height:80px}
     .hint{font-size:13px;color:var(--muted)}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+    .modal-actions button{min-width:100px}
+    /* Admin badge */
+    .admin-badge{display:none;align-items:center;gap:4px;font-size:12px;color:#4ade80;background:rgba(34,197,94,0.1);padding:4px 8px;border-radius:6px;margin-left:8px}
+    .admin-badge.visible{display:flex}
+    /* Delete button - admin only */
+    .delete-btn{display:none}
+    /* Empty state */
+    .empty-state{grid-column:1/-1;padding:40px 18px;background:rgba(255,255,255,0.02);border-radius:10px;text-align:center;color:var(--muted)}
+    .empty-state svg{margin-bottom:12px;opacity:0.5}
+    /* Section tabs */
+    .section-tabs{display:flex;gap:4px;margin-bottom:16px;background:rgba(255,255,255,0.02);padding:4px;border-radius:10px;width:fit-content}
+    .section-tabs button{background:transparent;border:none;padding:8px 16px;border-radius:8px;color:var(--muted);cursor:pointer;font-weight:500;transition:all 0.2s}
+    .section-tabs button.active{background:var(--accent);color:white}
   </style>
 </head>
 <body>
@@ -53,8 +80,8 @@
       <div class="brand">
         <div class="logo">NH</div>
         <div>
-          <h1>Nova HUD — Scripts</h1>
-          <div class="hint">Scripts verificados por el Owner</div>
+          <h1>Nova HUD <span style="font-weight:400;color:var(--muted);font-size:16px">Scripts</span></h1>
+          <div class="hint">Scripts verificados para la comunidad</div>
         </div>
       </div>
       <div class="controls">
@@ -62,101 +89,167 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35" stroke="#9fb3d0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="11" cy="11" r="6" stroke="#9fb3d0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
           <input id="searchInput" placeholder="Buscar scripts..." />
         </div>
-        <button id="openAdmin" class="btn">Panel Owner</button>
+        <button id="openAdmin" class="btn">Panel Admin</button>
+        <div class="admin-badge" id="adminBadge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          Admin
+        </div>
       </div>
     </header>
 
-    <div class="stats" id="stats">
-      <div class="stat"><div class="muted">Total</div><div id="statTotal">0</div></div>
-      <div class="stat"><div class="muted">Script Nova</div><div id="statNova">0</div></div>
-      <div class="stat"><div class="muted">Premium</div><div id="statPremium">0</div></div>
+    <div class="section-tabs">
+      <button data-section="all" class="active">📁 Todos</button>
+      <button data-section="nova">✨ Script Nova</button>
+      <button data-section="comunidad">🌐 Comunidad</button>
     </div>
 
-    <div class="filters" id="filters">
+    <div class="stats" id="stats">
+      <div class="stat"><div class="muted">Total</div><div class="val" id="statTotal">0</div></div>
+      <div class="stat"><div class="muted">Nova</div><div class="val" id="statNova">0</div></div>
+      <div class="stat"><div class="muted">Comunidad</div><div class="val" id="statComunidad">0</div></div>
+      <div class="stat"><div class="muted">Premium</div><div class="val" id="statPremium">0</div></div>
+    </div>
+
+    <div class="filters" id="filters" style="display:none">
       <button data-filter="all" class="active">Todos</button>
       <button data-filter="nova">Script Nova</button>
+      <button data-filter="comunidad">Comunidad</button>
       <button data-filter="premium">Premium</button>
     </div>
 
     <div class="grid" id="grid"></div>
 
-    <footer>Hecho con ❤️ por Owen — Nova HUD</footer>
+    <footer>© Nova HUD — Todos los derechos reservados</footer>
   </div>
 
-  <!-- Modal: Admin -->
-  <div class="modal-backdrop" id="modalBackdrop">
+  <!-- Modal: Login Admin -->
+  <div class="modal-backdrop" id="loginModal">
     <div class="modal" role="dialog" aria-modal="true">
-      <h3>Subir nuevo script</h3>
-      <div class="hint">Agrega un script con su imagen. Se guardará en Local Storage.</div>
+      <h3>🔐 Acceso Admin</h3>
+      <div class="hint">Ingresa la contraseña para acceder al panel de administración.</div>
+      <div style="height:16px"></div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input id="loginPassword" type="password" placeholder="Contraseña..." />
+      </div>
+      <div style="height:8px"></div>
+      <div id="loginError" style="color:var(--danger);font-size:13px;display:none">Contraseña incorrecta</div>
+      <div class="modal-actions">
+        <button id="closeLogin" class="btn ghost small">Cancelar</button>
+        <button id="doLogin" class="btn small">Acceder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Admin Panel -->
+  <div class="modal-backdrop" id="adminModal">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:600px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3>➕ Subir nuevo script</h3>
+        <button id="logoutAdmin" class="btn ghost small" style="font-size:12px">🚪 Salir</button>
+      </div>
+      <div class="hint">Agrega un script. Se guardará en Local Storage.</div>
       <div style="height:12px"></div>
       <div class="form-row">
         <div class="field">
           <label>Título</label>
-          <input id="fTitle" type="text" />
+          <input id="fTitle" type="text" placeholder="Nombre del script" />
         </div>
         <div class="field">
+          <label>Sección</label>
+          <select id="fSection">
+            <option value="comunidad">🌐 Comunidad</option>
+            <option value="nova">✨ Script Nova</option>
+          </select>
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="form-row">
+        <div class="field">
           <label>Tipo</label>
-          <select id="fType"><option value="free">Gratis</option><option value="nova">Script Nova</option><option value="premium">Premium</option></select>
+          <select id="fType">
+            <option value="free">Gratis</option>
+            <option value="premium">⭐ Premium</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Precio (solo Premium)</label>
+          <input id="fPrice" type="text" placeholder="Ej: 4.99" />
         </div>
       </div>
       <div style="height:8px"></div>
       <div class="field">
         <label>Descripción</label>
-        <textarea id="fDesc"></textarea>
+        <textarea id="fDesc" placeholder="Descripción breve del script..."></textarea>
       </div>
       <div style="height:8px"></div>
       <div class="form-row">
         <div class="field">
-          <label>Precio (solo Premium)</label>
-          <input id="fPrice" type="text" placeholder="Ej: 4.99" />
+          <label>Autor</label>
+          <input id="fAuthor" type="text" placeholder="Nombre del autor" />
         </div>
         <div class="field">
-          <label>Imagen (screenshot)</label>
+          <label>Imagen</label>
           <input id="fImage" type="file" accept="image/*" />
         </div>
       </div>
       <div style="height:8px"></div>
       <div class="field">
-        <label>Codigo / Contenido del script</label>
-        <textarea id="fCode"></textarea>
+        <label>Código del script</label>
+        <textarea id="fCode" style="font-family:monospace;font-size:12px;min-height:100px" placeholder="-- Pega el código aquí"></textarea>
       </div>
-      <div style="height:12px;display:flex;justify-content:flex-end;gap:8px">
-        <button id="closeModal" class="btn ghost small">Cancelar</button>
-        <button id="saveScript" class="btn small">Guardar script</button>
+      <div class="modal-actions">
+        <button id="closeAdmin" class="btn ghost small">Cancelar</button>
+        <button id="saveScript" class="btn success small">💾 Guardar</button>
       </div>
     </div>
   </div>
 
   <script>
     // Storage keys
-    const KEY = 'nova_scripts_v1';
-    const FAV = 'nova_fav_v1';
+    const KEY = 'nova_scripts_v2';
+    const FAV = 'nova_fav_v2';
+    const ADMIN_PASS_KEY = 'nova_admin_pass_v1';
+    const DEFAULT_PASS = 'nova2024'; // Cambiar esta contraseña
 
     // DOM
     const grid = document.getElementById('grid');
     const statTotal = document.getElementById('statTotal');
     const statNova = document.getElementById('statNova');
+    const statComunidad = document.getElementById('statComunidad');
     const statPremium = document.getElementById('statPremium');
-    const filters = document.getElementById('filters');
+    const sectionTabs = document.querySelector('.section-tabs');
     const searchInput = document.getElementById('searchInput');
 
-    // Modal fields
-    const modal = document.getElementById('modalBackdrop');
+    // Modals
+    const loginModal = document.getElementById('loginModal');
+    const adminModal = document.getElementById('adminModal');
     const openAdmin = document.getElementById('openAdmin');
-    const closeModal = document.getElementById('closeModal');
+    const closeLogin = document.getElementById('closeLogin');
+    const closeAdmin = document.getElementById('closeAdmin');
+    const doLogin = document.getElementById('doLogin');
+    const logoutAdmin = document.getElementById('logoutAdmin');
+    const loginPassword = document.getElementById('loginPassword');
+    const loginError = document.getElementById('loginError');
+    const adminBadge = document.getElementById('adminBadge');
+
+    // Form fields
     const saveScript = document.getElementById('saveScript');
     const fTitle = document.getElementById('fTitle');
     const fDesc = document.getElementById('fDesc');
+    const fSection = document.getElementById('fSection');
     const fType = document.getElementById('fType');
     const fPrice = document.getElementById('fPrice');
+    const fAuthor = document.getElementById('fAuthor');
     const fImage = document.getElementById('fImage');
     const fCode = document.getElementById('fCode');
 
     // App state
     let scripts = [];
     let favs = [];
-    let currentFilter = 'all';
+    let currentSection = 'all';
     let query = '';
+    let isAdmin = false;
 
     // Utilities
     function load(){
@@ -169,25 +262,28 @@
 
     function defaultScripts(){
       return [
-        {id:cryptoRandom(),title:'Auto farms x1',desc:'Script básico para automations',type:'nova',price:'',img:'https://placehold.co/600x400?text=Nova+Script',code:'print("Hola Nova")',author:'Owen',date:Date.now()},
-        {id:cryptoRandom(),title:'Speed Boost',desc:'Mejora de velocidad',type:'free',price:'',img:'https://placehold.co/600x400?text=Gratis',code:'-- script',author:'Owen',date:Date.now()},
+        {id:genId(),title:'Auto Farm Premium',desc:'Script de automatización avanzado con múltiples funciones',section:'nova',type:'premium',price:'4.99',img:'https://placehold.co/600x400/7c3aed/white?text=Nova+Script',code:'-- Auto Farm\nprint("Running...")',author:'Nova HUD',date:Date.now()},
+        {id:genId(),title:'Speed Boost v2',desc:'Aumenta tu velocidad de movimiento',section:'nova',type:'free',price:'',img:'https://placehold.co/600x400/06b6d4/white?text=Speed+Boost',code:'-- Speed Boost',author:'Nova HUD',date:Date.now()},
+        {id:genId(),title:'Chat Filter',desc:'Filtra mensajes inapropiados del chat',section:'comunidad',type:'free',price:'',img:'https://placehold.co/600x400/22c55e/white?text=Chat+Filter',code:'-- Chat Filter',author:'Usuario1',date:Date.now()},
       ];
     }
 
-    function cryptoRandom(){ return Math.random().toString(36).slice(2,9); }
+    function genId(){ return Math.random().toString(36).slice(2,9) + Date.now().toString(36); }
+    function escapeHtml(text){ return (text||'').toString().replace(/[&<>\"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
     // Render
     function render(){
-      // stats
+      // Stats
       statTotal.textContent = scripts.length;
-      statNova.textContent = scripts.filter(s=>s.type==='nova').length;
+      statNova.textContent = scripts.filter(s=>s.section==='nova').length;
+      statComunidad.textContent = scripts.filter(s=>s.section==='comunidad').length;
       statPremium.textContent = scripts.filter(s=>s.type==='premium').length;
 
-      // grid
+      // Grid
       grid.innerHTML = '';
-      const list = scripts.filter(s=>{
-        if(currentFilter==='nova') return s.type==='nova';
-        if(currentFilter==='premium') return s.type==='premium';
+      let list = scripts.filter(s=>{
+        if(currentSection==='nova') return s.section==='nova';
+        if(currentSection==='comunidad') return s.section==='comunidad';
         return true;
       }).filter(s=>{
         if(!query) return true;
@@ -195,27 +291,41 @@
         return s.title.toLowerCase().includes(q) || (s.desc||'').toLowerCase().includes(q) || (s.author||'').toLowerCase().includes(q);
       });
 
-      if(list.length===0){ grid.innerHTML = '<div style="grid-column:1/-1;padding:18px;background:rgba(255,255,255,0.02);border-radius:10px;text-align:center;color:var(--muted)">No hay scripts publicados.</div>';return }
+      if(list.length===0){
+        grid.innerHTML = `<div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div>No hay scripts publicados</div>
+          <div style="font-size:13px;margin-top:4px">${isAdmin ? '¡Sube el primero desde el panel admin!' : ''}</div>
+        </div>`;
+        return;
+      }
 
       list.forEach(s=>{
-        const el = document.createElement('div'); el.className='card';
+        const el = document.createElement('div');
+        el.className = 'card';
+        const sectionLabel = s.section === 'nova' ? '✨ Script Nova' : '🌐 Comunidad';
+        const sectionClass = s.section === 'nova' ? 'nova' : 'comunidad';
+        const typeLabel = s.type === 'premium' ? `⭐ Premium${s.price ? ' $'+s.price : ''}` : 'Free';
+        
         el.innerHTML = `
           <img src="${s.img || 'https://placehold.co/600x400?text=Sin+imagen'}" alt="${escapeHtml(s.title)}"/>
           <div>
             <div class="meta">
               <div>
                 <div class="title">${escapeHtml(s.title)}</div>
-                <div class="hint">${escapeHtml(s.desc)}</div>
+                <div class="desc">${escapeHtml(s.desc)}</div>
               </div>
               <div class="tags">
-                <div class="tag">${s.type==='premium'? 'Premium' : (s.type==='nova' ? 'Script Nova' : 'Gratis')}</div>
+                <div class="tag ${sectionClass}">${sectionLabel}</div>
+                <div class="tag">${typeLabel}</div>
               </div>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
               <div class="hint">By ${escapeHtml(s.author||'Owner')}</div>
               <div class="actions">
-                <button class="small btn" data-action="download" data-id="${s.id}">Descargar</button>
-                <button class="small fav" data-action="fav" data-id="${s.id}">${favs.includes(s.id)? '❤️ Guardado' : '♡ Guardar'}</button>
+                <button class="small btn" data-action="download" data-id="${s.id}">📥 Descargar</button>
+                <button class="small fav ${favs.includes(s.id) ? 'active' : ''}" data-action="fav" data-id="${s.id}">${favs.includes(s.id) ? '❤️' : '🤍'}</button>
+                ${isAdmin ? `<button class="small btn danger" data-action="delete" data-id="${s.id}" title="Eliminar script">🗑️</button>` : ''}
               </div>
             </div>
           </div>
@@ -224,62 +334,145 @@
       });
     }
 
-    // Helpers
-    function escapeHtml(text){ return (text||'').toString().replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
-
     // Events
-    filters.addEventListener('click', e=>{
-      const btn = e.target.closest('button'); if(!btn) return;
-      Array.from(filters.querySelectorAll('button')).forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active'); currentFilter = btn.dataset.filter; render();
+    sectionTabs.addEventListener('click', e=>{
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      Array.from(sectionTabs.querySelectorAll('button')).forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentSection = btn.dataset.section;
+      render();
     });
 
     searchInput.addEventListener('input', e=>{ query = e.target.value.trim(); render(); });
 
     grid.addEventListener('click', e=>{
-      const btn = e.target.closest('button'); if(!btn) return;
-      const id = btn.dataset.id; const action = btn.dataset.action;
-      const item = scripts.find(s=>s.id===id); if(!item) return;
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      const item = scripts.find(s=>s.id===id);
+      if(!item) return;
+
       if(action==='download'){
         const blob = new Blob([item.code||''],{type:'text/plain'});
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href=url; a.download = (item.title||'script')+'.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        const a = document.createElement('a'); a.href=url; a.download = (item.title||'script')+'.lua'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
       }
       if(action==='fav'){
         if(favs.includes(id)){ favs = favs.filter(x=>x!==id); } else { favs.push(id); }
         saveFavs(); render();
       }
+      if(action==='delete' && isAdmin){
+        if(confirm(`¿Eliminar "${item.title}"?`)){
+          scripts = scripts.filter(s=>s.id!==id);
+          save(); render();
+        }
+      }
     });
 
-    // Admin modal
-    openAdmin.addEventListener('click', ()=>{ modal.style.display='flex'; });
-    closeModal.addEventListener('click', ()=>{ modal.style.display='none'; clearForm(); });
-    modal.addEventListener('click', e=>{ if(e.target===modal){ modal.style.display='none'; clearForm(); } });
+    // Admin logic
+    openAdmin.addEventListener('click', ()=>{
+      if(isAdmin){
+        adminModal.style.display = 'flex';
+      } else {
+        loginModal.style.display = 'flex';
+        loginPassword.value = '';
+        loginError.style.display = 'none';
+        loginPassword.focus();
+      }
+    });
+
+    closeLogin.addEventListener('click', ()=>{ loginModal.style.display = 'none'; });
+    loginModal.addEventListener('click', e=>{ if(e.target===loginModal) loginModal.style.display = 'none'; });
+
+    doLogin.addEventListener('click', ()=>{
+      const pass = loginPassword.value.trim();
+      // Contraseña configurable
+      const storedPass = localStorage.getItem(ADMIN_PASS_KEY) || DEFAULT_PASS;
+      
+      if(pass === storedPass){
+        isAdmin = true;
+        loginModal.style.display = 'none';
+        adminBadge.classList.add('visible');
+        adminModal.style.display = 'flex';
+        render();
+      } else {
+        loginError.style.display = 'block';
+        loginPassword.focus();
+      }
+    });
+
+    loginPassword.addEventListener('keypress', e=>{ if(e.key==='Enter') doLogin.click(); });
+
+    closeAdmin.addEventListener('click', ()=>{ adminModal.style.display = 'none'; clearForm(); });
+    adminModal.addEventListener('click', e=>{ if(e.target===adminModal){ adminModal.style.display = 'none'; clearForm(); } });
+
+    logoutAdmin.addEventListener('click', ()=>{
+      isAdmin = false;
+      adminBadge.classList.remove('visible');
+      adminModal.style.display = 'none';
+      render();
+    });
 
     saveScript.addEventListener('click', async ()=>{
       const title = fTitle.value.trim();
       if(!title){ alert('El título es obligatorio'); return; }
+      
       const desc = fDesc.value.trim();
+      const section = fSection.value;
       const type = fType.value;
       const price = fPrice.value.trim();
+      const author = fAuthor.value.trim() || 'Admin';
       const code = fCode.value;
-      const author = 'Owen';
-      let imgData = '';
+      let imgData = 'https://placehold.co/600x400?text=Script';
+      
       if(fImage.files && fImage.files[0]){
         imgData = await toBase64(fImage.files[0]);
-      } else {
-        imgData = 'https://placehold.co/600x400?text=No+image';
       }
-      const item = { id:cryptoRandom(), title, desc, type, price, code, img: imgData, author, date: Date.now() };
-      scripts.unshift(item); save(); render(); modal.style.display='none'; clearForm();
-      alert('Script guardado correctamente');
+      
+      const item = { 
+        id: genId(), 
+        title, 
+        desc, 
+        section, 
+        type, 
+        price, 
+        code, 
+        img: imgData, 
+        author, 
+        date: Date.now() 
+      };
+      
+      scripts.unshift(item); 
+      save(); 
+      adminModal.style.display = 'none'; 
+      clearForm(); 
+      render();
+      alert('✅ Script guardado correctamente');
     });
 
-    function clearForm(){ fTitle.value=''; fDesc.value=''; fType.value='free'; fPrice.value=''; fImage.value=''; fCode.value=''; }
+    function clearForm(){
+      fTitle.value = '';
+      fDesc.value = '';
+      fSection.value = 'comunidad';
+      fType.value = 'free';
+      fPrice.value = '';
+      fAuthor.value = '';
+      fImage.value = '';
+      fCode.value = '';
+    }
 
-    function toBase64(file){ return new Promise((res,rej)=>{ const reader = new FileReader(); reader.onload = ()=>res(reader.result); reader.onerror = err=>rej(err); reader.readAsDataURL(file); }); }
+    function toBase64(file){ 
+      return new Promise((res,rej)=>{ 
+        const reader = new FileReader(); 
+        reader.onload = ()=>res(reader.result); 
+        reader.onerror = err=>rej(err); 
+        reader.readAsDataURL(file); 
+      }); 
+    }
 
-    // Initialization
+    // Init
     load();
   </script>
 </body>
