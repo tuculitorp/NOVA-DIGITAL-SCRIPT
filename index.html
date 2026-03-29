@@ -34,7 +34,6 @@
     overflow-x: hidden;
   }
 
-  /* ── BACKGROUND MESH ── */
   body::before {
     content:'';
     position: fixed;
@@ -102,9 +101,7 @@
     gap: 12px;
   }
 
-  .search-wrap {
-    position: relative;
-  }
+  .search-wrap { position: relative; }
 
   .search-wrap input {
     background: var(--surface);
@@ -209,9 +206,7 @@
     margin-top: 8px;
   }
 
-  .stat {
-    text-align: center;
-  }
+  .stat { text-align: center; }
 
   .stat-n {
     font-size: 1.8rem;
@@ -347,9 +342,7 @@
     border-radius: 100px;
   }
 
-  .card-body {
-    padding: 16px 18px 18px;
-  }
+  .card-body { padding: 16px 18px 18px; }
 
   .card-name {
     font-size: 1rem;
@@ -403,6 +396,42 @@
 
   .btn-dl:hover { opacity: 0.85; transform: scale(1.03); }
   .btn-dl:active { transform: scale(0.97); }
+
+  /* ── LOADING OVERLAY ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    transition: opacity 0.4s;
+  }
+
+  .loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
 
   /* ── MODAL ── */
   .modal-overlay {
@@ -646,7 +675,6 @@
 
   .admin-body { padding: 24px; }
 
-  /* Login form */
   .login-form { display: flex; flex-direction: column; gap: 14px; }
 
   .form-label {
@@ -701,6 +729,7 @@
   }
 
   .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .error-msg {
     color: var(--danger);
@@ -708,7 +737,6 @@
     text-align: center;
   }
 
-  /* Admin script list */
   .admin-script-item {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -770,6 +798,34 @@
   .tab-pane { display: none; }
   .tab-pane.active { display: block; }
 
+  /* Sync indicator */
+  .sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.65rem;
+    color: var(--accent);
+    background: var(--accent-glow);
+    border: 1px solid rgba(0,212,170,0.2);
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .sync-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
   /* ── EMPTY STATE ── */
   .empty-state {
     grid-column: 1/-1;
@@ -824,7 +880,6 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-  /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
     .stats-row { gap: 28px; }
     .search-wrap input { width: 160px; }
@@ -835,6 +890,12 @@
 </style>
 </head>
 <body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Cargando scripts...</div>
+</div>
 
 <!-- HEADER -->
 <header>
@@ -989,56 +1050,102 @@
 </div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────────
-const ADMIN_PASS = "nova2024"; // Cambia esta contraseña
-const STORAGE_KEY = "novahub_scripts";
-const DL_KEY = "novahub_downloads";
+// ══════════════════════════════════════════════════════════
+//  NOVA HUB — Almacenamiento Centralizado
+//  Los scripts se guardan en window.storage (shared: true)
+//  para que TODOS los usuarios vean los mismos scripts.
+//  El admin es el único que puede escribir/borrar.
+// ══════════════════════════════════════════════════════════
 
-let scripts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-let downloads = JSON.parse(localStorage.getItem(DL_KEY) || "{}");
+const ADMIN_PASS = "nova2024"; // ← Cambia esta contraseña
+
+// Claves de almacenamiento centralizado
+const STORAGE_SCRIPTS  = "novahub_scripts_v2";   // compartido (todos leen)
+const STORAGE_DOWNLOADS = "novahub_downloads_v2"; // compartido (contadores globales)
+
+let scripts      = [];
+let downloads    = {};
 let currentFilter = "Todos";
-let activeScript = null;
-let isAdmin = false;
+let activeScript  = null;
+let isAdmin       = false;
 
-// Seed demo si está vacío
-if (scripts.length === 0) {
-  scripts = [
+// ── CARGA INICIAL ─────────────────────────────────────────
+async function initApp() {
+  try {
+    // Intentar cargar desde almacenamiento centralizado
+    const [sRes, dRes] = await Promise.all([
+      safeGet(STORAGE_SCRIPTS,   true),
+      safeGet(STORAGE_DOWNLOADS, true)
+    ]);
+
+    if (sRes) {
+      scripts = JSON.parse(sRes);
+    } else {
+      // Primera vez: cargar datos demo y guardarlos en centralizado
+      scripts = getDefaultScripts();
+      await safeSet(STORAGE_SCRIPTS, JSON.stringify(scripts), true);
+    }
+
+    downloads = dRes ? JSON.parse(dRes) : {};
+
+  } catch (e) {
+    console.warn("Storage no disponible, usando modo local:", e);
+    // Fallback a localStorage si window.storage no existe
+    scripts   = JSON.parse(localStorage.getItem("novahub_scripts") || "null") || getDefaultScripts();
+    downloads = JSON.parse(localStorage.getItem("novahub_downloads") || "{}");
+  }
+
+  hideLoading();
+  render(getFiltered());
+}
+
+// ── HELPERS DE STORAGE ────────────────────────────────────
+async function safeGet(key, shared = false) {
+  if (typeof window.storage === "undefined") throw new Error("no storage");
+  try {
+    const r = await window.storage.get(key, shared);
+    return r ? r.value : null;
+  } catch {
+    return null;
+  }
+}
+
+async function safeSet(key, value, shared = false) {
+  if (typeof window.storage === "undefined") throw new Error("no storage");
+  return await window.storage.set(key, value, shared);
+}
+
+// Guarda en almacenamiento centralizado (compartido) + fallback local
+async function persistScripts() {
+  const sJson = JSON.stringify(scripts);
+  const dJson = JSON.stringify(downloads);
+  try {
+    await Promise.all([
+      safeSet(STORAGE_SCRIPTS,   sJson, true),
+      safeSet(STORAGE_DOWNLOADS, dJson, true)
+    ]);
+  } catch {
+    // Fallback localStorage
+    localStorage.setItem("novahub_scripts",   sJson);
+    localStorage.setItem("novahub_downloads", dJson);
+  }
+}
+
+function hideLoading() {
+  const el = document.getElementById("loadingOverlay");
+  el.classList.add("hidden");
+  setTimeout(() => el.style.display = "none", 400);
+}
+
+// ── DATOS DEMO ────────────────────────────────────────────
+function getDefaultScripts() {
+  return [
     {
       id: "1",
       name: "Nova Beta v1",
       category: "ESP",
       desc: "Script de ESP avanzado para Roblox. Muestra la posición de todos los jugadores a través de las paredes con colores personalizables y distancia en tiempo real.",
-      code: `-- Nova Hub | ESP Script v1
--- Uso exclusivo con fines educativos
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
-local ESP = {}
-ESP.Enabled = true
-ESP.Color = Color3.fromRGB(0, 212, 170)
-
-local function createESP(player)
-    if player == LocalPlayer then return end
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "NovaESP"
-    billboard.AlwaysOnTop = true
-    billboard.Size = UDim2.new(0, 100, 0, 40)
-    billboard.StudsOffset = Vector3.new(0, 3, 0)
-    
-    local label = Instance.new("TextLabel", billboard)
-    label.BackgroundTransparency = 1
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.Font = Enum.Font.GothamBold
-    label.TextColor3 = ESP.Color
-    label.TextSize = 14
-    label.Text = player.Name
-    
-    return billboard
-end
-
-print("[Nova Hub] ESP cargado correctamente")`,
+      code: `-- Nova Hub | ESP Script v1\n-- Uso exclusivo con fines educativos\n\nlocal Players = game:GetService("Players")\nlocal RunService = game:GetService("RunService")\nlocal LocalPlayer = Players.LocalPlayer\n\nlocal ESP = {}\nESP.Enabled = true\nESP.Color = Color3.fromRGB(0, 212, 170)\n\nlocal function createESP(player)\n    if player == LocalPlayer then return end\n    local billboard = Instance.new("BillboardGui")\n    billboard.Name = "NovaESP"\n    billboard.AlwaysOnTop = true\n    billboard.Size = UDim2.new(0, 100, 0, 40)\n    billboard.StudsOffset = Vector3.new(0, 3, 0)\n    \n    local label = Instance.new("TextLabel", billboard)\n    label.BackgroundTransparency = 1\n    label.Size = UDim2.new(1, 0, 1, 0)\n    label.Font = Enum.Font.GothamBold\n    label.TextColor3 = ESP.Color\n    label.TextSize = 14\n    label.Text = player.Name\n    \n    return billboard\nend\n\nprint("[Nova Hub] ESP cargado correctamente")`,
       img: "",
       date: Date.now()
     },
@@ -1047,47 +1154,11 @@ print("[Nova Hub] ESP cargado correctamente")`,
       name: "Nova Fly v2",
       category: "Movement",
       desc: "Script de vuelo suave para Roblox con velocidad ajustable, anti-cheat evasion y controles intuitivos. Compatible con la mayoría de juegos.",
-      code: `-- Nova Hub | Fly Script v2
--- Controles: E para volar, Q para bajar
-
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character
-
-local flying = false
-local speed = 50
-local bodyVel, bodyGyro
-
-local function toggleFly()
-    flying = not flying
-    local hrp = Character:FindFirstChild("HumanoidRootPart")
-    if flying then
-        bodyVel = Instance.new("BodyVelocity", hrp)
-        bodyVel.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-        bodyGyro = Instance.new("BodyGyro", hrp)
-        print("[Nova Hub] Vuelo activado")
-    else
-        if bodyVel then bodyVel:Destroy() end
-        if bodyGyro then bodyGyro:Destroy() end
-        print("[Nova Hub] Vuelo desactivado")
-    end
-end
-
-UIS.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.E then toggleFly() end
-end)`,
+      code: `-- Nova Hub | Fly Script v2\n-- Controles: E para volar, Q para bajar\n\nlocal Players = game:GetService("Players")\nlocal UIS = game:GetService("UserInputService")\nlocal RunService = game:GetService("RunService")\nlocal LocalPlayer = Players.LocalPlayer\nlocal Character = LocalPlayer.Character\n\nlocal flying = false\nlocal speed = 50\nlocal bodyVel, bodyGyro\n\nlocal function toggleFly()\n    flying = not flying\n    local hrp = Character:FindFirstChild("HumanoidRootPart")\n    if flying then\n        bodyVel = Instance.new("BodyVelocity", hrp)\n        bodyVel.MaxForce = Vector3.new(1e9, 1e9, 1e9)\n        bodyGyro = Instance.new("BodyGyro", hrp)\n        print("[Nova Hub] Vuelo activado")\n    else\n        if bodyVel then bodyVel:Destroy() end\n        if bodyGyro then bodyGyro:Destroy() end\n        print("[Nova Hub] Vuelo desactivado")\n    end\nend\n\nUIS.InputBegan:Connect(function(input)\n    if input.KeyCode == Enum.KeyCode.E then toggleFly() end\nend)`,
       img: "",
       date: Date.now() - 86400000
     }
   ];
-  saveScripts();
-}
-
-function saveScripts() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(scripts));
-  localStorage.setItem(DL_KEY, JSON.stringify(downloads));
 }
 
 // ── RENDER ────────────────────────────────────────────────
@@ -1095,12 +1166,10 @@ function render(list) {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
 
-  // Stats
-  const totalDl = Object.values(downloads).reduce((a,b)=>a+b,0);
+  const totalDl = Object.values(downloads).reduce((a, b) => a + b, 0);
   document.getElementById("statTotal").innerHTML = scripts.length + '<span>+</span>';
   document.getElementById("statDl").innerHTML = totalDl + '<span>+</span>';
 
-  // Filters
   buildFilters();
 
   if (list.length === 0) {
@@ -1136,8 +1205,8 @@ function buildFilters() {
   const bar = document.getElementById("filterBar");
   const cats = [...new Set(scripts.map(s => s.category).filter(Boolean))];
   bar.innerHTML = `<span class="filter-label">Filtrar:</span>
-    <button class="tag-btn ${currentFilter==='Todos'?'active':''}" onclick="setFilter('Todos', this)">Todos</button>
-    ${cats.map(c=>`<button class="tag-btn ${currentFilter===c?'active':''}" onclick="setFilter('${c}', this)">${c}</button>`).join("")}`;
+    <button class="tag-btn ${currentFilter === 'Todos' ? 'active' : ''}" onclick="setFilter('Todos', this)">Todos</button>
+    ${cats.map(c => `<button class="tag-btn ${currentFilter === c ? 'active' : ''}" onclick="setFilter('${c}', this)">${c}</button>`).join("")}`;
 }
 
 function getFiltered() {
@@ -1204,13 +1273,13 @@ function quickDownload(id) {
   if (s) doDownload(s);
 }
 
-function doDownload(s) {
+async function doDownload(s) {
   downloads[s.id] = (downloads[s.id] || 0) + 1;
-  saveScripts();
+  await persistScripts(); // guardar contador centralizado
   const blob = new Blob([s.code], { type: "text/plain" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = s.name.replace(/\s+/g,"_") + ".lua";
+  a.download = s.name.replace(/\s+/g, "_") + ".lua";
   a.click();
   if (activeScript && activeScript.id === s.id) {
     document.getElementById("modalDlCount").textContent = downloads[s.id];
@@ -1278,36 +1347,37 @@ function renderAdminList() {
     </div>`).join("");
 }
 
-function saveScript() {
-  const id = document.getElementById("editId").value;
+async function saveScript() {
+  const id   = document.getElementById("editId").value;
   const name = document.getElementById("sName").value.trim();
-  const cat = document.getElementById("sCat").value.trim();
+  const cat  = document.getElementById("sCat").value.trim();
   const desc = document.getElementById("sDesc").value.trim();
   const code = document.getElementById("sCode").value.trim();
-  const img = document.getElementById("sImg").value.trim();
-  const err = document.getElementById("addErr");
+  const img  = document.getElementById("sImg").value.trim();
+  const err  = document.getElementById("addErr");
+  const btn  = document.getElementById("saveBtn");
 
   if (!name || !desc || !code) {
     err.textContent = "Nombre, descripción y código son obligatorios.";
     return;
   }
   err.textContent = "";
+  btn.disabled = true;
+  btn.textContent = "Guardando...";
 
   if (id) {
-    // Edit
     const idx = scripts.findIndex(s => s.id === id);
-    if (idx > -1) {
-      scripts[idx] = { ...scripts[idx], name, category: cat, desc, code, img };
-    }
+    if (idx > -1) scripts[idx] = { ...scripts[idx], name, category: cat, desc, code, img };
   } else {
-    // New
     scripts.push({ id: Date.now().toString(), name, category: cat, desc, code, img, date: Date.now() });
   }
 
-  saveScripts();
+  await persistScripts(); // ← guarda centralizado para todos
+
+  btn.disabled = false;
   resetForm();
   render(getFiltered());
-  showToast(id ? "Script actualizado" : "Script publicado con éxito");
+  showToast(id ? "Script actualizado ✓ (visible para todos)" : "Script publicado ✓ (visible para todos)");
   switchTab("list", document.querySelectorAll(".tab-btn")[1]);
   renderAdminList();
 }
@@ -1315,23 +1385,23 @@ function saveScript() {
 function editScript(id) {
   const s = scripts.find(x => x.id === id);
   if (!s) return;
-  document.getElementById("editId").value = s.id;
-  document.getElementById("sName").value = s.name;
-  document.getElementById("sCat").value = s.category || "";
-  document.getElementById("sDesc").value = s.desc;
-  document.getElementById("sCode").value = s.code;
-  document.getElementById("sImg").value = s.img || "";
+  document.getElementById("editId").value   = s.id;
+  document.getElementById("sName").value    = s.name;
+  document.getElementById("sCat").value     = s.category || "";
+  document.getElementById("sDesc").value    = s.desc;
+  document.getElementById("sCode").value    = s.code;
+  document.getElementById("sImg").value     = s.img || "";
   document.getElementById("saveBtn").textContent = "Actualizar script";
   switchTab("add", document.querySelectorAll(".tab-btn")[0]);
 }
 
-function deleteScript(id) {
-  if (!confirm("¿Eliminar este script?")) return;
+async function deleteScript(id) {
+  if (!confirm("¿Eliminar este script? Se borrará para todos los usuarios.")) return;
   scripts = scripts.filter(s => s.id !== id);
-  saveScripts();
+  await persistScripts(); // ← borra centralizado para todos
   renderAdminList();
   render(getFiltered());
-  showToast("Script eliminado");
+  showToast("Script eliminado (ya no visible para nadie)");
 }
 
 function resetForm() {
@@ -1343,13 +1413,13 @@ function resetForm() {
 function showToast(msg) {
   const t = document.getElementById("toast");
   document.getElementById("toastMsg").textContent = msg;
-  t.classList.add("show","success");
+  t.classList.add("show", "success");
   clearTimeout(t._to);
-  t._to = setTimeout(() => t.classList.remove("show"), 3000);
+  t._to = setTimeout(() => t.classList.remove("show"), 3500);
 }
 
-// ── INIT ──────────────────────────────────────────────────
-render(getFiltered());
+// ── ARRANCAR ──────────────────────────────────────────────
+initApp();
 </script>
 </body>
 </html>
