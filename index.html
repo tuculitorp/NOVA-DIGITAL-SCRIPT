@@ -1,387 +1,1355 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nova HUD - Scripts (UI ScriptBlox)</title>
-  <style>
-    :root{--bg:#0b1020;--card:#151a35;--text:#e7e9f5;--muted:#a6a6a6;--accent:#6d28d9;--shadow:0 6px 20px rgba(0,0,0,.25)}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter, system-ui, Arial, sans-serif}
-    header.top{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #2a2a3a;background:linear-gradient(135deg,#171a3a 0%, #0b1020 60%);position:sticky;top:0;z-index:10}
-    .brand{font-size:20px;font-weight:800;letter-spacing:.4px}
-    .brand .tag{margin-left:8px;background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
-    .user-area{display:flex;align-items:center;gap:12px}
-    .avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#2a2a2a;display:flex;align-items:center;justify-content:center;font-weight:700}
-    .avatar img{width:100%;height:100%;object-fit:cover}
-    .role-badge{font-size:11px;padding:4px 8px;border-radius:999px;background:#1e1f3a;border:1px solid #2a2a3a;color:#ddd}
-    .container{max-width:1100px;margin:20px auto;padding:0 16px}
-    .hero{padding:16px 0 12px}
-    .hero h1{margin:0;font-size:28px;line-height:1.25;font-weight:900;letter-spacing:.2px}
-    .hero .sub{font-size:12px;color:var(--muted)}
-    .search{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-    .search input{flex:1;min-width:240px;padding:12px 14px;border-radius:8px;border:1px solid #444;background:#0b1330;color:#fff}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:12px}
-    .card{background:var(--card);border:1px solid #2a2a3a;border-radius:12px;padding:12px;box-shadow:var(--shadow)}
-    .card h4{margin:0 0 6px;font-size:14px}
-    .card p{margin:0 0 8px;font-size:13px;color:var(--muted)}
-    .btn{padding:10px 12px;border-radius:8px;border:1px solid #2a2a3a;background:#2a2a66;color:white;cursor:pointer}
-    .btn.primary{background:#6d28d9}
-    .btn.secondary{background:#1e1f3a}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .tabs{display:flex;gap:8px;border-bottom:1px solid #2a2a3a;padding:6px 0;margin-top:8px}
-    .tab{padding:8px 12px;border-radius:8px 8px 0 0;background:#1b1f45;border:1px solid #2a2a3a;cursor:pointer}
-    .tab.active{background:#2b2f7a;color:white}
-    /* Modales */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:20}
-    .modal.open{display:flex}
-    .dialog{background:#0f1330;border-radius:12px;padding:18px;width:min(92%,720px);border:1px solid #333;color:#fff}
-    .dialog h3{margin:0 0 8px}
-    .form{display:grid;gap:10px}
-    .input{padding:10px;border-radius:8px;border:1px solid #444;background:#0b1330;color:#fff}
-    .file{padding:8px;border-radius:6px;border:1px solid #444;background:#0b1330;color:#fff}
-    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
-    .heroRow{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Hub — Scripts de Roblox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --surface: #0d1520;
+    --surface2: #111d2e;
+    --border: #1a2d42;
+    --accent: #00d4aa;
+    --accent2: #00a8ff;
+    --accent-glow: rgba(0,212,170,0.15);
+    --text: #e2eaf2;
+    --muted: #5a7a96;
+    --danger: #ff4d6d;
+    --white: #ffffff;
+    --radius: 12px;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND MESH ── */
+  body::before {
+    content:'';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0,212,170,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0,168,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8,12,16,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: #000;
+    letter-spacing: -1px;
+  }
+
+  .logo-text {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--white);
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-wrap input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-head);
+    font-size: 0.8rem;
+    padding: 7px 14px 7px 36px;
+    border-radius: 8px;
+    outline: none;
+    width: 220px;
+    transition: border-color 0.2s, width 0.3s;
+  }
+
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    width: 280px;
+  }
+
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .btn-admin {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-head);
+    font-size: 0.78rem;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-admin:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 72px 2rem 56px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+
+  .hero h1 .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 480px;
+    margin: 0 auto 36px;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-top: 8px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-n {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .stat-n span { color: var(--accent); }
+
+  .stat-l {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 4px;
+  }
+
+  .tag-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-head);
+    font-size: 0.75rem;
+    padding: 5px 12px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tag-btn.active, .tag-btn:hover {
+    background: var(--accent-glow);
+    border-color: rgba(0,212,170,0.4);
+    color: var(--accent);
+  }
+
+  /* ── GRID ── */
+  .grid {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0,212,170,0.4);
+    box-shadow: 0 12px 40px rgba(0,212,170,0.1);
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .card-thumb {
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(135deg, var(--surface2) 0%, #0a1929 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+  }
+
+  .card-thumb .no-img {
+    font-size: 3rem;
+    opacity: 0.15;
+  }
+
+  .card-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--surface) 0%, transparent 60%);
+  }
+
+  .card-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,212,170,0.15);
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--accent);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 100px;
+  }
+
+  .card-body {
+    padding: 16px 18px 18px;
+  }
+
+  .card-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .card-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-dl-count {
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .btn-dl {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-family: var(--font-head);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 7px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .btn-dl:hover { opacity: 0.85; transform: scale(1.03); }
+  .btn-dl:active { transform: scale(0.97); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8,12,16,0.88);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.25s;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+  .modal-thumb {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #0a1929, #0d2040);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+  }
+
+  .modal-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+  }
+
+  .modal-thumb .no-img { font-size: 5rem; opacity: 0.1; }
+
+  .modal-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--surface) 0%, transparent 60%);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(8,12,16,0.7);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover { background: var(--surface2); }
+
+  .modal-body { padding: 24px 28px 28px; }
+
+  .modal-tags { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+
+  .modal-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-glow);
+    border: 1px solid rgba(0,212,170,0.25);
+    padding: 3px 8px;
+    border-radius: 100px;
+  }
+
+  .modal-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+
+  .modal-desc {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-bottom: 20px;
+  }
+
+  .code-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .code-block {
+    background: #060a0f;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .code-block pre {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: #7dd3c4;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-head);
+    font-size: 0.68rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .modal-dl-count {
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-dl-lg {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .btn-dl-lg:hover { opacity: 0.85; transform: scale(1.02); }
+
+  /* ── ADMIN PANEL ── */
+  .admin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8,12,16,0.92);
+    backdrop-filter: blur(10px);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .admin-overlay.open { opacity: 1; pointer-events: all; }
+
+  .admin-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform 0.25s;
+  }
+
+  .admin-overlay.open .admin-box { transform: scale(1); }
+
+  .admin-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .admin-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .admin-body { padding: 24px; }
+
+  /* Login form */
+  .login-form { display: flex; flex-direction: column; gap: 14px; }
+
+  .form-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-head);
+    font-size: 0.875rem;
+    padding: 10px 14px;
+    border-radius: 8px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--muted); }
+
+  .form-textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  .form-textarea.code-input {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    min-height: 120px;
+    color: #7dd3c4;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 100%;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .error-msg {
+    color: var(--danger);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  /* Admin script list */
+  .admin-script-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .admin-script-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .admin-actions { display: flex; gap: 6px; }
+
+  .btn-edit, .btn-delete {
+    border: none;
+    border-radius: 6px;
+    font-family: var(--font-head);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-edit { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-delete { background: rgba(255,77,109,0.15); color: var(--danger); border: 1px solid rgba(255,77,109,0.3); }
+  .btn-edit:hover, .btn-delete:hover { opacity: 0.75; }
+
+  .admin-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-head);
+    font-size: 0.78rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent-glow);
+    border-color: rgba(0,212,170,0.4);
+    color: var(--accent);
+  }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 64px 20px;
+  }
+
+  .empty-state .icon { font-size: 3rem; opacity: 0.15; margin-bottom: 16px; }
+  .empty-state p { color: var(--muted); font-size: 0.9rem; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.82rem;
+    padding: 12px 18px;
+    border-radius: 10px;
+    z-index: 999;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(0,212,170,0.4); }
+  .toast.success .t-icon { color: var(--accent); }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 24px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .stats-row { gap: 28px; }
+    .search-wrap input { width: 160px; }
+    .search-wrap input:focus { width: 180px; }
+    .modal-body { padding: 18px; }
+    .admin-body { padding: 16px; }
+  }
+</style>
 </head>
 <body>
-  <header class="top">
-    <div class="brand">Nova HUD <span class="tag">ScriptBlox</span></div>
-    <div class="user-area">
-      <div id="avatarHeader" class="avatar" title="Avatar" style="display:none"></div>
-      <div id="userNameHeader" style="font-size:13px"></div>
-      <button class="btn" id="btnOpenRegister" style="margin-left:8px">Registrarse</button>
-      <button class="btn" id="btnOpenLogin" style="margin-left:8px">Iniciar sesión</button>
-      <button class="btn" id="btnLogout" style="margin-left:8px; display:none">Cerrar sesión</button>
-    </div>
-  </header>
 
-  <section class="hero container" id="hero">
-    <div class="heroRow">
-      <h1 style="flex:1 1 auto;">Search the best Roblox Scripts available in community
-        <span class="tag" style="margin-left:8px;background:#6d28d9">ScriptBlox</span>
-      </h1>
-    </div>
-    <div class="search">
-      <input id="searchInput" placeholder="Buscar scripts (ej: 'tutorial')" />
-      <button id="btnClearSearch" class="btn">Limpiar</button>
-    </div>
-  </section>
-
-  <main class="container">
-    <div class="panel" style="padding:12px 14px 6px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-      <div style="font-weight:700">Scripts Comunidad</div>
-      <div>
-        <button class="btn primary" id="btnUploadCommunity">Subir a Comunidad</button>
-        <button class="btn primary" id="btnUploadNova" style="margin-left:8px; display:none">Subir Nova Script</button>
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">N</div>
+      <span class="logo-text">Nova<span>Hub</span></span>
+    </a>
+    <div class="header-right">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Buscar scripts..." oninput="filterScripts()">
       </div>
-    </div>
-    <section id="section-community" class="grid" aria-label="Scripts Comunidad"></section>
-
-    <div class="panel" style="margin-top:20px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-      <div style="font-weight:700">Nova Scripts (Admin) </div>
-      <span id="adminHint" style="color:#ffd166; font-size:12px"></span>
-    </div>
-    <section id="section-nova" class="grid" aria-label="Nova Scripts" style="display:none"></section>
-
-    <div class="panel" style="margin-top:20px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-      <div style="font-weight:700">Todos</div>
-    </div>
-    <section id="section-all" class="grid" aria-label="Todos" style="display:none"></section>
-  </main>
-
-  <!-- Modales -->
-  <div class="modal" id="modalRegister" aria-hidden="true">
-    <div class="dialog">
-      <h3>Registro</h3>
-      <div class="form">
-        <input class="input" id="regEmail" placeholder="Correo" />
-        <input class="input" id="regUsername" placeholder="Usuario" />
-        <input type="password" class="input" id="regPassword" placeholder="Contraseña" />
-      </div>
-      <button class="btn" id="btnRegister">Crear cuenta</button>
-      <button class="btn" id="btnRegisterClose" style="margin-left:6px">Cancelar</button>
-      <div id="regMsg" style="margin-top:6px;color:#ffd166"></div>
+      <button class="btn-admin" onclick="openAdmin()">⚙ Admin</button>
     </div>
   </div>
-  <div class="modal" id="modalLogin" aria-hidden="true">
-    <div class="dialog">
-      <h3>Iniciar sesión</h3>
-      <div class="form">
-        <input class="input" id="loginUser" placeholder="Usuario o correo" />
-        <input type="password" class="input" id="loginPassword" placeholder="Contraseña" />
-      </div>
-      <button class="btn" id="btnLogin">Entrar</button>
-      <button class="btn" id="btnLoginClose" style="margin-left:6px">Cancelar</button>
-      <div id="loginMsg" style="margin-top:6px;color:#ffd166"></div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">✦ Roblox Scripts</div>
+  <h1>Scripts para<br><span class="grad">Roblox</span></h1>
+  <p>Colección curada de scripts premium. Descarga, ejecuta y domina el juego.</p>
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-n" id="statTotal">0<span>+</span></div>
+      <div class="stat-l">Scripts</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" id="statDl">0<span>+</span></div>
+      <div class="stat-l">Descargas</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">100<span>%</span></div>
+      <div class="stat-l">Free</div>
     </div>
   </div>
-  
-  <!-- Perfil -->
-  <div class="modal" id="modalPerfil" aria-hidden="true">
-    <div class="dialog">
-      <h3>Perfil</h3>
-      <div class="form">
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <div id="perfilAvatar" class="avatar" style="width:64px;height:64px;font-size:28px"></div>
-          <input type="file" id="avatarInput" accept="image/*" class="file" />
+</section>
+
+<!-- FILTERS -->
+<div class="filter-bar" id="filterBar">
+  <span class="filter-label">Filtrar:</span>
+  <button class="tag-btn active" onclick="setFilter('Todos', this)">Todos</button>
+</div>
+
+<!-- GRID -->
+<div class="grid" id="grid"></div>
+
+<!-- FOOTER -->
+<footer>
+  Nova Hub © 2025 · Scripts de Roblox · Hecho con 💚
+</footer>
+
+<!-- SCRIPT MODAL -->
+<div class="modal-overlay" id="scriptModal">
+  <div class="modal" id="modalBox">
+    <div class="modal-thumb" id="modalThumb">
+      <span class="no-img">🚀</span>
+      <div class="modal-thumb-overlay"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tags" id="modalTags"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-desc" id="modalDesc"></div>
+      <div class="code-label">⟨/⟩ Código del script</div>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode()">Copiar</button>
+        <pre id="modalCode"></pre>
+      </div>
+      <div class="modal-actions">
+        <div class="modal-dl-count">
+          ↓ <span id="modalDlCount">0</span> descargas
         </div>
-        <div id="perfilInfo" style="font-weight:600;margin-top:6px"></div>
-        <div id="perfilEmail" style="font-size:12px;color:var(--muted)"></div>
-        <div id="perfilRole" class="role-badge" style="margin-top:6px"></div>
+        <button class="btn-dl-lg" onclick="downloadScript()">
+          ↓ Descargar .lua
+        </button>
       </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn" id="btnPerfilClose">Cerrar</button>
-        <button class="btn primary" id="btnPerfilSave">Guardar cambios</button>
-      </div>
-      <div id="perfilMsg" style="margin-top:6px;color:#ffd166"></div>
     </div>
   </div>
+</div>
 
-  <!-- Subir script (Comunidad) -->
-  <div class="modal" id="modalUpload" aria-hidden="true">
-    <div class="dialog" style="min-width:320px;">
-      <h3>Subir script a Comunidad</h3>
-      <div class="form" style="gap:8px">
-        <input class="input" id="uploadTitle" placeholder="Título" />
-        <textarea class="input" id="uploadDesc" placeholder="Descripción" style="min-height:90px"></textarea>
-        <textarea class="input" id="uploadContent" placeholder="Contenido del script (texto)" style="min-height:120px"></textarea>
-        <input type="file" id="uploadThumb" accept="image/*" class="file" />
+<!-- ADMIN OVERLAY -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-box">
+    <div class="admin-header">
+      <span class="admin-title" id="adminTitle">🔐 Acceso Admin</span>
+      <button class="modal-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="admin-body" id="adminBody">
+      <!-- Login -->
+      <div id="loginView">
+        <div class="login-form">
+          <div>
+            <div class="form-label">Contraseña</div>
+            <input type="password" class="form-input" id="pwdInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+          </div>
+          <div class="error-msg" id="loginErr"></div>
+          <button class="btn-primary" onclick="doLogin()">Entrar al panel</button>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <button class="btn" id="btnUploadSubmit">Subir</button>
-        <button class="btn" id="btnUploadCancel">Cancelar</button>
+
+      <!-- Panel -->
+      <div id="panelView" style="display:none">
+        <div class="admin-tabs">
+          <button class="tab-btn active" onclick="switchTab('add',this)">+ Agregar</button>
+          <button class="tab-btn" onclick="switchTab('list',this)">📋 Lista</button>
+        </div>
+
+        <!-- ADD / EDIT -->
+        <div class="tab-pane active" id="tabAdd">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <input type="hidden" id="editId">
+            <div>
+              <div class="form-label">Nombre del script *</div>
+              <input type="text" class="form-input" id="sName" placeholder="Ej: Nova Beta">
+            </div>
+            <div>
+              <div class="form-label">Categoría</div>
+              <input type="text" class="form-input" id="sCat" placeholder="Ej: ESP, Aimbot, UI...">
+            </div>
+            <div>
+              <div class="form-label">Descripción *</div>
+              <textarea class="form-input form-textarea" id="sDesc" placeholder="Breve descripción del script..."></textarea>
+            </div>
+            <div>
+              <div class="form-label">Código .lua *</div>
+              <textarea class="form-input form-textarea code-input" id="sCode" placeholder="-- Pega aquí el código del script"></textarea>
+            </div>
+            <div>
+              <div class="form-label">URL de imagen (opcional)</div>
+              <input type="text" class="form-input" id="sImg" placeholder="https://...">
+            </div>
+            <div class="error-msg" id="addErr"></div>
+            <button class="btn-primary" onclick="saveScript()" id="saveBtn">Guardar script</button>
+          </div>
+        </div>
+
+        <!-- LIST -->
+        <div class="tab-pane" id="tabList">
+          <div id="adminList"></div>
+        </div>
       </div>
-      <div id="uploadMsg" style="margin-top:6px;color:#ffd166"></div>
     </div>
   </div>
+</div>
 
-  <!-- Subir Nova Script (Admin) -->
-  <div class="modal" id="modalUploadNova" aria-hidden="true">
-    <div class="dialog" style="min-width:320px;">
-      <h3>Subir Nova Script (Admin)</h3>
-      <div class="form" style="gap:8px">
-        <input class="input" id="uploadNovaTitle" placeholder="Título" />
-        <textarea class="input" id="uploadNovaDesc" placeholder="Descripción" style="min-height:90px"></textarea>
-        <textarea class="input" id="uploadNovaContent" placeholder="Contenido del script (texto)" style="min-height:120px"></textarea>
-        <input type="file" id="uploadNovaThumb" accept="image/*" class="file" />
-      </div>
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <button class="btn" id="btnUploadNovaSubmit">Subir</button>
-        <button class="btn" id="btnUploadNovaCancel">Cancelar</button>
-      </div>
-      <div id="uploadNovaMsg" style="margin-top:6px;color:#ffd166"></div>
-    </div>
-  </div>
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="t-icon">✓</span>
+  <span id="toastMsg"></span>
+</div>
 
-  <script>
-  (function(){
-    // Storage keys
-    const STORAGE = { users: 'nh_users', session: 'nh_session', scripts: 'nh_scripts' };
-    // DOM refs
-    const DOM = {
-      btnOpenRegister: document.getElementById('btnOpenRegister'),
-      btnOpenLogin: document.getElementById('btnOpenLogin'),
-      btnLogout: document.getElementById('btnLogout'),
-      avatarHeader: document.getElementById('avatarHeader'),
-      userNameHeader: document.getElementById('userNameHeader'),
-      searchInput: document.getElementById('searchInput'),
-      sectionCommunity: document.getElementById('section-community'),
-      sectionNova: document.getElementById('section-nova'),
-      sectionAll: document.getElementById('section-all'),
-      btnUploadCommunity: document.getElementById('btnUploadCommunity'),
-      btnUploadNova: document.getElementById('btnUploadNova'),
-      modalRegister: document.getElementById('modalRegister'),
-      modalLogin: document.getElementById('modalLogin'),
-      regEmail: document.getElementById('regEmail'),
-      regUsername: document.getElementById('regUsername'),
-      regPassword: document.getElementById('regPassword'),
-      btnRegister: document.getElementById('btnRegister'),
-      btnRegisterClose: document.getElementById('btnRegisterClose'),
-      regMsg: document.getElementById('regMsg'),
-      loginUser: document.getElementById('loginUser'),
-      loginPassword: document.getElementById('loginPassword'),
-      btnLogin: document.getElementById('btnLogin'),
-      btnLoginClose: document.getElementById('btnLoginClose'),
-      loginMsg: document.getElementById('loginMsg'),
-      modalPerfil: document.getElementById('modalPerfil'),
-      btnPerfilClose: document.getElementById('btnPerfilClose'),
-      btnPerfilSave: document.getElementById('btnPerfilSave'),
-      avatarInput: document.getElementById('avatarInput'),
-      perfilAvatar: document.getElementById('perfilAvatar'),
-      perfilInfo: document.getElementById('perfilInfo'),
-      perfilEmail: document.getElementById('perfilEmail'),
-      perfilRole: document.getElementById('perfilRole'),
-      perfilMsg: document.getElementById('perfilMsg'),
-      btnUploadSubmit: document.getElementById('btnUploadSubmit'),
-      btnUploadCancel: document.getElementById('btnUploadCancel'),
-      uploadTitle: document.getElementById('uploadTitle'),
-      uploadDesc: document.getElementById('uploadDesc'),
-      uploadContent: document.getElementById('uploadContent'),
-      uploadThumb: document.getElementById('uploadThumb'),
-      uploadMsg: document.getElementById('uploadMsg'),
-      modalUpload: document.getElementById('modalUpload'),
-      modalUploadNova: document.getElementById('modalUploadNova'),
-      uploadNovaTitle: document.getElementById('uploadNovaTitle'),
-      uploadNovaDesc: document.getElementById('uploadNovaDesc'),
-      uploadNovaContent: document.getElementById('uploadNovaContent'),
-      uploadNovaThumb: document.getElementById('uploadNovaThumb'),
-      btnUploadNovaSubmit: document.getElementById('btnUploadNovaSubmit'),
-      btnUploadNovaCancel: document.getElementById('btnUploadNovaCancel'),
-      uploadNovaMsg: document.getElementById('uploadNovaMsg'),
-      adminHint: document.getElementById('adminHint'),
-    };
+<script>
+// ── DATA ──────────────────────────────────────────────────
+const ADMIN_PASS = "nova2024"; // Cambia esta contraseña
+const STORAGE_KEY = "novahub_scripts";
+const DL_KEY = "novahub_downloads";
 
-    // Helpers
-    const getUsers = ()=>{ const s = localStorage.getItem(STORAGE.users); return s ? JSON.parse(s) : []; };
-    const saveUsers = (u)=> localStorage.setItem(STORAGE.users, JSON.stringify(u));
-    const getSession = ()=>{ const s = localStorage.getItem(STORAGE.session); return s ? JSON.parse(s) : null; };
-    const saveSession = (s)=> localStorage.setItem(STORAGE.session, JSON.stringify(s));
+let scripts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let downloads = JSON.parse(localStorage.getItem(DL_KEY) || "{}");
+let currentFilter = "Todos";
+let activeScript = null;
+let isAdmin = false;
 
-    const getScripts = ()=>{ const s = localStorage.getItem(STORAGE.scripts); return s ? JSON.parse(s) : []; };
-    const saveScripts = (arr)=> localStorage.setItem(STORAGE.scripts, JSON.stringify(arr));
+// Seed demo si está vacío
+if (scripts.length === 0) {
+  scripts = [
+    {
+      id: "1",
+      name: "Nova Beta v1",
+      category: "ESP",
+      desc: "Script de ESP avanzado para Roblox. Muestra la posición de todos los jugadores a través de las paredes con colores personalizables y distancia en tiempo real.",
+      code: `-- Nova Hub | ESP Script v1
+-- Uso exclusivo con fines educativos
 
-    // Admin seed
-    const ensureAdminExists = ()=>{ const users = getUsers(); if(!users.find(u=>u.role==='admin')){ const admin = { id:'admin', username:'owner', email:'owner@example.com', password:'admin', role:'admin' }; users.push(admin); saveUsers(users); }};
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
-    // State helpers
-    const current = ()=> getSession();
-    const isLoggedIn = ()=> !!getSession();
-    const isAdmin = ()=> current() && current().role==='admin';
-    const canUploadCommunity = ()=> isLoggedIn();
-    const canUploadNova = ()=> isAdmin();
+local ESP = {}
+ESP.Enabled = true
+ESP.Color = Color3.fromRGB(0, 212, 170)
 
-    // UI rendering
-    const renderHeader = ()=>{
-      const s = current(); if(s){ DOM.avatarHeader.style.display='flex'; DOM.btnLogout.style.display='inline-block'; DOM.userNameHeader.textContent = s.username + ' ('+ s.role +')'; if(s.avatar){ DOM.avatarHeader.innerHTML = `<img src="${s.avatar}" alt="avatar" style="width:40px;height:40px;border-radius:50%"/>`; } else { DOM.avatarHeader.textContent = s.username.charAt(0).toUpperCase(); }
-        // Nova button visibility
-        DOM.btnUploadNova.style.display = s.role==='admin' ? 'inline-block' : 'none'; DOM.adminHint.textContent = s.role==='admin' ? 'Acceso de administrador' : '';
-      } else {
-        DOM.avatarHeader.style.display = 'none'; DOM.userNameHeader.textContent=''; DOM.btnLogout.style.display='none'; DOM.btnUploadNova.style.display='none'; DOM.adminHint.textContent='';
-      }
-      // Update All tab visibility
-      document.getElementById('tabNova').style.display = isAdmin() ? 'inline-block' : 'none';
-    };
+local function createESP(player)
+    if player == LocalPlayer then return end
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "NovaESP"
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 100, 0, 40)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    
+    local label = Instance.new("TextLabel", billboard)
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Font = Enum.Font.GothamBold
+    label.TextColor3 = ESP.Color
+    label.TextSize = 14
+    label.Text = player.Name
+    
+    return billboard
+end
 
-    const renderScripts = (list)=>{
-      // Clear sections
-      const renderCard = (s)=>{ const card = document.createElement('div'); card.className='card'; card.style.display='flex'; card.style.flexDirection='column'; card.style.gap='6px'; card.innerHTML = `<div style="font-weight:700">${s.title}</div><div style="font-size:12px;color:var(--muted)">${s.description}</div><div style="display:flex;gap:6px;align-items:center;margin-top:auto"></div>`; // add actions below after
-        const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='6px';
-        const dl = document.createElement('button'); dl.className='btn'; dl.textContent='Descargar'; dl.addEventListener('click', ()=>downloadScript(s));
-        const ver = document.createElement('button'); ver.className='btn secondary'; ver.textContent='Ver'; ver.addEventListener('click', ()=>alert('Detalles: '+s.title));
-        actions.appendChild(dl); actions.appendChild(ver); card.appendChild(actions);
-        // optional thumbnail area
-        return card;
-      };
-      // community
-      DOM.sectionCommunity.innerHTML='';
-      (list||[]).filter(x=> x.category==='community').forEach(s=> DOM.sectionCommunity.appendChild(renderCard(s)));
-      // nova
-      DOM.sectionNova.innerHTML='';
-      (list||[]).filter(x=> x.category==='nova').forEach(s=>{ const c = renderCard(s); DOM.sectionNova.appendChild(c); // admin only actions can be added here later
-      // add delete for admin
-      if(isAdmin()){ const del = document.createElement('button'); del.className='btn'; del.textContent='Eliminar'; del.style.marginLeft='4px'; del.addEventListener('click', ()=>{ deleteScript(s.id); }); c.appendChild(del); }
-      });
-      // all
-      DOM.sectionAll.innerHTML=''; (list||[]).forEach(s=>{ const c = renderCard(s); DOM.sectionAll.appendChild(c); });
-    };
+print("[Nova Hub] ESP cargado correctamente")`,
+      img: "",
+      date: Date.now()
+    },
+    {
+      id: "2",
+      name: "Nova Fly v2",
+      category: "Movement",
+      desc: "Script de vuelo suave para Roblox con velocidad ajustable, anti-cheat evasion y controles intuitivos. Compatible con la mayoría de juegos.",
+      code: `-- Nova Hub | Fly Script v2
+-- Controles: E para volar, Q para bajar
 
-    const downloadScript = (s)=>{
-      const content = s.content || '';
-      const blob = new Blob([content], {type:'text/plain'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (s.title || 'script') + '.txt'; a.click(); URL.revokeObjectURL(a.href);
-    };
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character
 
-    const loadInitialData = ()=>{
-      ensureAdminExists(); // users
-      // seed scripts if none
-      let scripts = getScripts(); if(!scripts || !scripts.length){ const seed = [
-        { id:'c1', title:'Script de bienvenida', description:'Un script de ejemplo de la comunidad', content:'echo Hola mundo', category:'community', author:'owner', date:new Date().toISOString() },
-        { id:'c2', title:'Guía de instalación', description:'Instrucciones', content:'pasos:\n1. hacer... ', category:'community', author:'user1', date:new Date().toISOString() },
-        { id:'n1', title:'Nova Script ejemplo', description:'Ejemplo admin', content:'print("Nova Script")', category:'nova', author:'admin', date:new Date().toISOString() }
-      ]; localStorage.setItem(STORAGE.scripts, JSON.stringify(seed)); scripts = seed; }
-      renderScripts(scripts);
-    };
+local flying = false
+local speed = 50
+local bodyVel, bodyGyro
 
-    // Init helpers
-    const createModal = (modal)=> modal.classList.add('open');
-    const closeModal = (modal)=> modal.classList.remove('open');
+local function toggleFly()
+    flying = not flying
+    local hrp = Character:FindFirstChild("HumanoidRootPart")
+    if flying then
+        bodyVel = Instance.new("BodyVelocity", hrp)
+        bodyVel.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        bodyGyro = Instance.new("BodyGyro", hrp)
+        print("[Nova Hub] Vuelo activado")
+    else
+        if bodyVel then bodyVel:Destroy() end
+        if bodyGyro then bodyGyro:Destroy() end
+        print("[Nova Hub] Vuelo desactivado")
+    end
+end
 
-    // Bindings for auth modals
-    const mRegister = DOM.modalRegister || document.getElementById('modalRegister');
-    const mLogin = DOM.modalLogin || document.getElementById('modalLogin');
-    // Attach events if exists
-    if(DOM.btnOpenRegister){ DOM.btnOpenRegister.addEventListener('click', ()=> createModal(mRegister)); }
-    if(DOM.btnOpenLogin){ DOM.btnOpenLogin.addEventListener('click', ()=> createModal(mLogin)); }
-    if(DOM.btnLogout){ DOM.btnLogout.addEventListener('click', ()=>{ localStorage.removeItem(STORAGE.session); updateAll(); }); }
-    // Register flow
-    const regForm = {email: DOM.regEmail, user: DOM.regUsername, pw: DOM.regPassword, btn: document.getElementById('btnRegister'), msg: document.getElementById('regMsg')};
-    if(regForm.btn){ regForm.btn.addEventListener('click', ()=>{
-      const email = regForm.email.value?.trim(); const user = regForm.user.value?.trim(); const pw = regForm.pw.value?.trim(); if(!email||!user||!pw){ regForm.msg.textContent='Completa todos los campos'; return; }
-      const users = getUsers(); if(users.find(u=>u.username===user || u.email===email)){ regForm.msg.textContent='Usuario o email ya registrado'; return; }
-      users.push({id:'u_'+Date.now(), username:user, email:email, password:pw, role:'user', avatar:''}); saveUsers(users); regForm.msg.textContent='Cuenta creada. Inicia sesión'; }); }
-    // Close reg
-    if(DOM.btnRegisterClose){ DOM.btnRegisterClose.addEventListener('click', ()=>{ mRegister.classList.remove('open'); regForm.email.value=''; regForm.user.value=''; regForm.pw.value=''; regForm.msg.textContent=''; }); }
-
-    // Login flow
-    const loginBtn = document.getElementById('btnLogin');
-    if(loginBtn){ loginBtn.addEventListener('click', ()=>{
-      const userOrEmail = document.getElementById('loginUser').value.trim(); const pw = document.getElementById('loginPassword').value.trim(); const users = getUsers(); const userObj = users.find(u=> (u.username===userOrEmail || u.email===userOrEmail)); if(!userObj){ document.getElementById('loginMsg').textContent='Usuario no encontrado'; return; } if(userObj.password !== pw){ document.getElementById('loginMsg').textContent='Contraseña incorrecta'; return; } saveSession({id:userObj.id, username:userObj.username, email:userObj.email, role:userObj.role, avatar:userObj.avatar||''}); mLogin.classList.remove('open'); document.getElementById('loginUser').value=''; document.getElementById('loginPassword').value=''; updateAll(); }); }
-    const loginClose = document.getElementById('btnLoginClose'); if(loginClose){ loginClose.addEventListener('click', ()=>{ mLogin.classList.remove('open'); document.getElementById('loginUser').value=''; document.getElementById('loginPassword').value=''; }); }
-
-    // Avatar in profile (Phase 1: simple avatar management)
-    const avatarInput = document.getElementById('avatarInput');
-    if(avatarInput){ avatarInput.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = ()=>{ const dataURL = reader.result; const s = current(); if(!s) return; s.avatar = dataURL; const users = getUsers(); const idx = users.findIndex(u => u.id===s.id || u.username===s.username); if(idx>=0){ users[idx].avatar = dataURL; saveUsers(users); } localStorage.setItem('avatarPreview', dataURL); updateAll(); }; reader.readAsDataURL(f); }); }
-
-    // Upload community script
-    if(DOM.btnUploadSubmit){ DOM.btnUploadSubmit.addEventListener('click', ()=>{ const t = DOM.uploadTitle.value.trim(); const d = DOM.uploadDesc.value.trim(); const c = DOM.uploadContent.value.trim(); const f = DOM.uploadThumb.files[0]; if(!t||!c){ document.getElementById('uploadMsg').textContent='Título y contenido requeridos'; return; }
-        const scripts = getScripts(); const newScript = { id: 'c_'+Date.now(), title: t, description: d||'', content: c, category:'community', author: (getSession()?.username)||'anon', date:new Date().toISOString(), thumbnail:'' };
-        // handle thumbnail if provided
-        if(f){ const reader = new FileReader(); reader.onload = ()=>{ newScript.thumbnail = reader.result; const arr = scripts; arr.push(newScript); saveScripts(arr); renderAll(); DOM.modalUpload.classList.remove('open'); resetUploadForm(); }; reader.readAsDataURL(f); } else {
-          scripts.push(newScript); saveScripts(scripts); renderAll(); DOM.modalUpload.classList.remove('open'); resetUploadForm(); }
-      }); }
-    if(DOM.btnUploadCancel){ DOM.btnUploadCancel.addEventListener('click', ()=>{ DOM.modalUpload.classList.remove('open'); resetUploadForm(); }); }
-
-    // Upload Nova Script (admin)
-    if(DOM.btnUploadNova){ DOM.btnUploadNova.addEventListener('click', ()=>{ if(!isAdmin()) return alert('Acceso restringido a administrador'); DOM.modalUploadNova.classList.add('open'); }); }
-    if(document.getElementById('btnUploadNovaSubmit')){ document.getElementById('btnUploadNovaSubmit').addEventListener('click', ()=>{ const t = DOM.uploadNovaTitle.value.trim(); const d = DOM.uploadNovaDesc.value.trim(); const c = DOM.uploadNovaContent.value.trim(); if(!t||!c){ document.getElementById('uploadNovaMsg').textContent='Título y contenido requeridos'; return; } const scripts = getScripts(); const newScript = { id:'n_'+Date.now(), title:t, description:d||'', content:c, category:'nova', author:(getSession()?.username)||'admin', date:new Date().toISOString(), thumbnail:'' }; const f = DOM.uploadNovaThumb.files[0]; if(f){ const reader=new FileReader(); reader.onload=()=>{ newScript.thumbnail=reader.result; scripts.push(newScript); saveScripts(scripts); renderAll(); resetNovaUpload(); DOM.modalUploadNova.classList.remove('open'); }; reader.readAsDataURL(f);} else { scripts.push(newScript); saveScripts(scripts); renderAll(); resetNovaUpload(); DOM.modalUploadNova.classList.remove('open'); } }); }
-    if(document.getElementById('btnUploadNovaCancel')){ document.getElementById('btnUploadNovaCancel').addEventListener('click', ()=>{ DOM.modalUploadNova.classList.remove('open'); resetNovaUpload(); }); }
-
-    function resetUploadForm(){ DOM.uploadTitle.value=''; DOM.uploadDesc.value=''; DOM.uploadContent.value=''; DOM.uploadThumb.value=''; DOM.uploadMsg.textContent=''; }
-    function resetNovaUpload(){ DOM.uploadNovaTitle.value=''; DOM.uploadNovaDesc.value=''; DOM.uploadNovaContent.value=''; DOM.uploadNovaThumb.value=''; DOM.uploadNovaMsg.textContent=''; }
-
-    // Render all sections
-    function renderAll(){ const scripts = getScripts(); renderAllSections(scripts); }
-    function renderAllSections(list){ // render community and nova and all
-      // Community cards currently built in renderScripts
-      renderScripts(list);
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.E then toggleFly() end
+end)`,
+      img: "",
+      date: Date.now() - 86400000
     }
+  ];
+  saveScripts();
+}
 
-    // Helpers: delete script (admin only)
-    function deleteScript(id){ let scripts = getScripts(); scripts = scripts.filter(s=> s.id!==id); saveScripts(scripts); renderAll(); }
+function saveScripts() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scripts));
+  localStorage.setItem(DL_KEY, JSON.stringify(downloads));
+}
 
-    // Update overall UI and data
-    function updateAll(){ renderHeader(); loadInitialData(); }
+// ── RENDER ────────────────────────────────────────────────
+function render(list) {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
 
-    // Init
-    function init(){ ensureAdminExists(); loadInitialData(); renderAll(); }
+  // Stats
+  const totalDl = Object.values(downloads).reduce((a,b)=>a+b,0);
+  document.getElementById("statTotal").innerHTML = scripts.length + '<span>+</span>';
+  document.getElementById("statDl").innerHTML = totalDl + '<span>+</span>';
 
-    // URL-based search sync and filtering
-    if(DOM.searchInput){ DOM.searchInput.addEventListener('input', (e)=>{ const q = e.target.value; const url = q ? '?q='+encodeURIComponent(q) : ''; history.replaceState(null, '', url); // filter current list by q
-      applyQueryFilter(q); }); }
+  // Filters
+  buildFilters();
 
-    function applyQueryFilter(q){ const all = getScripts(); if(!q){ renderAllSections(all); return; } const f = all.filter(s => (s.title||'').toLowerCase().includes(q.toLowerCase()) || (s.description||'').toLowerCase().includes(q.toLowerCase())); renderAllSections(f); }
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No hay scripts disponibles aún.<br>¡Vuelve pronto!</p></div>`;
+    return;
+  }
 
-    // Initialize
-    const initFromURL = ()=>{ const params = new URLSearchParams(window.location.search); const q = params.get('q')||''; if(q && DOM.searchInput){ DOM.searchInput.value = q; applyQueryFilter(q); } };
+  list.forEach((s, i) => {
+    const dl = downloads[s.id] || 0;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.animationDelay = (i * 0.06) + "s";
+    card.innerHTML = `
+      <div class="card-thumb">
+        ${s.img ? `<img src="${s.img}" alt="${s.name}" onerror="this.style.display='none'">` : `<span class="no-img">🚀</span>`}
+        <div class="card-thumb-overlay"></div>
+        ${s.category ? `<span class="card-badge">${s.category}</span>` : ""}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${s.name}</div>
+        <div class="card-desc">${s.desc}</div>
+        <div class="card-footer">
+          <span class="card-dl-count">↓ ${dl} descargas</span>
+          <button class="btn-dl" onclick="event.stopPropagation();quickDownload('${s.id}')">↓ .lua</button>
+        </div>
+      </div>`;
+    card.onclick = () => openScript(s.id);
+    grid.appendChild(card);
+  });
+}
 
-    // Seed and render
-    init(); initFromURL();
+function buildFilters() {
+  const bar = document.getElementById("filterBar");
+  const cats = [...new Set(scripts.map(s => s.category).filter(Boolean))];
+  bar.innerHTML = `<span class="filter-label">Filtrar:</span>
+    <button class="tag-btn ${currentFilter==='Todos'?'active':''}" onclick="setFilter('Todos', this)">Todos</button>
+    ${cats.map(c=>`<button class="tag-btn ${currentFilter===c?'active':''}" onclick="setFilter('${c}', this)">${c}</button>`).join("")}`;
+}
 
-    // Bind header actions
-    // Registrarse / Iniciar sesión modal toggling already wired above
+function getFiltered() {
+  let list = [...scripts];
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  if (q) list = list.filter(s => s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q));
+  if (currentFilter !== "Todos") list = list.filter(s => s.category === currentFilter);
+  return list;
+}
 
-  })();
-  </script>
+function filterScripts() { render(getFiltered()); }
+
+function setFilter(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll(".tag-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  render(getFiltered());
+}
+
+// ── SCRIPT MODAL ──────────────────────────────────────────
+function openScript(id) {
+  const s = scripts.find(x => x.id === id);
+  if (!s) return;
+  activeScript = s;
+
+  const thumb = document.getElementById("modalThumb");
+  thumb.innerHTML = s.img
+    ? `<img src="${s.img}" onerror="this.style.display='none'"><div class="modal-thumb-overlay"></div><button class="modal-close" onclick="closeModal()">✕</button>`
+    : `<span class="no-img">🚀</span><div class="modal-thumb-overlay"></div><button class="modal-close" onclick="closeModal()">✕</button>`;
+
+  document.getElementById("modalTags").innerHTML = s.category ? `<span class="modal-tag">${s.category}</span>` : "";
+  document.getElementById("modalTitle").textContent = s.name;
+  document.getElementById("modalDesc").textContent = s.desc;
+  document.getElementById("modalCode").textContent = s.code;
+  document.getElementById("modalDlCount").textContent = downloads[s.id] || 0;
+
+  document.getElementById("scriptModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  document.getElementById("scriptModal").classList.remove("open");
+  document.body.style.overflow = "";
+  activeScript = null;
+}
+
+document.getElementById("scriptModal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+
+function copyCode() {
+  if (!activeScript) return;
+  navigator.clipboard.writeText(activeScript.code);
+  showToast("Código copiado al portapapeles");
+}
+
+function downloadScript() {
+  if (!activeScript) return;
+  doDownload(activeScript);
+}
+
+function quickDownload(id) {
+  const s = scripts.find(x => x.id === id);
+  if (s) doDownload(s);
+}
+
+function doDownload(s) {
+  downloads[s.id] = (downloads[s.id] || 0) + 1;
+  saveScripts();
+  const blob = new Blob([s.code], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = s.name.replace(/\s+/g,"_") + ".lua";
+  a.click();
+  if (activeScript && activeScript.id === s.id) {
+    document.getElementById("modalDlCount").textContent = downloads[s.id];
+  }
+  render(getFiltered());
+  showToast("Descargando " + s.name + ".lua");
+}
+
+// ── ADMIN ─────────────────────────────────────────────────
+function openAdmin() {
+  document.getElementById("adminOverlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+  if (isAdmin) showPanel();
+}
+
+function closeAdmin() {
+  document.getElementById("adminOverlay").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("adminOverlay").addEventListener("click", function(e) {
+  if (e.target === this) closeAdmin();
+});
+
+function doLogin() {
+  const pw = document.getElementById("pwdInput").value;
+  if (pw === ADMIN_PASS) {
+    isAdmin = true;
+    document.getElementById("loginErr").textContent = "";
+    showPanel();
+  } else {
+    document.getElementById("loginErr").textContent = "Contraseña incorrecta.";
+    document.getElementById("pwdInput").value = "";
+  }
+}
+
+function showPanel() {
+  document.getElementById("adminTitle").textContent = "⚙ Panel Admin";
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("panelView").style.display = "block";
+  renderAdminList();
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("tab" + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add("active");
+  if (tab === "list") renderAdminList();
+}
+
+function renderAdminList() {
+  const container = document.getElementById("adminList");
+  if (scripts.length === 0) {
+    container.innerHTML = `<p style="color:var(--muted);font-size:0.82rem;text-align:center;padding:20px 0">No hay scripts aún.</p>`;
+    return;
+  }
+  container.innerHTML = scripts.map(s => `
+    <div class="admin-script-item">
+      <span class="admin-script-name">${s.name}</span>
+      <div class="admin-actions">
+        <button class="btn-edit" onclick="editScript('${s.id}')">✏ Editar</button>
+        <button class="btn-delete" onclick="deleteScript('${s.id}')">🗑 Borrar</button>
+      </div>
+    </div>`).join("");
+}
+
+function saveScript() {
+  const id = document.getElementById("editId").value;
+  const name = document.getElementById("sName").value.trim();
+  const cat = document.getElementById("sCat").value.trim();
+  const desc = document.getElementById("sDesc").value.trim();
+  const code = document.getElementById("sCode").value.trim();
+  const img = document.getElementById("sImg").value.trim();
+  const err = document.getElementById("addErr");
+
+  if (!name || !desc || !code) {
+    err.textContent = "Nombre, descripción y código son obligatorios.";
+    return;
+  }
+  err.textContent = "";
+
+  if (id) {
+    // Edit
+    const idx = scripts.findIndex(s => s.id === id);
+    if (idx > -1) {
+      scripts[idx] = { ...scripts[idx], name, category: cat, desc, code, img };
+    }
+  } else {
+    // New
+    scripts.push({ id: Date.now().toString(), name, category: cat, desc, code, img, date: Date.now() });
+  }
+
+  saveScripts();
+  resetForm();
+  render(getFiltered());
+  showToast(id ? "Script actualizado" : "Script publicado con éxito");
+  switchTab("list", document.querySelectorAll(".tab-btn")[1]);
+  renderAdminList();
+}
+
+function editScript(id) {
+  const s = scripts.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById("editId").value = s.id;
+  document.getElementById("sName").value = s.name;
+  document.getElementById("sCat").value = s.category || "";
+  document.getElementById("sDesc").value = s.desc;
+  document.getElementById("sCode").value = s.code;
+  document.getElementById("sImg").value = s.img || "";
+  document.getElementById("saveBtn").textContent = "Actualizar script";
+  switchTab("add", document.querySelectorAll(".tab-btn")[0]);
+}
+
+function deleteScript(id) {
+  if (!confirm("¿Eliminar este script?")) return;
+  scripts = scripts.filter(s => s.id !== id);
+  saveScripts();
+  renderAdminList();
+  render(getFiltered());
+  showToast("Script eliminado");
+}
+
+function resetForm() {
+  ["editId","sName","sCat","sDesc","sCode","sImg"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("saveBtn").textContent = "Guardar script";
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  document.getElementById("toastMsg").textContent = msg;
+  t.classList.add("show","success");
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────
+render(getFiltered());
+</script>
 </body>
 </html>
